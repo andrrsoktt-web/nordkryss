@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Nordkryss</title>
+<style>
+:root{
+  --bg:#f4f6fb; --card:#ffffff; --ink:#16233a; --sub:#6b7a94;
+  --blue:#2456a6; --blue2:#3c74d4; --gold:#e8a13c; --good:#2e9e6b; --bad:#d5544f;
+  --cell:#ffffff; --cellsel:#cfe0fa; --cellword:#e7effc; --line:#dfe5f0;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;}
+body{background:var(--bg);color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  overscroll-behavior:none;user-select:none;-webkit-user-select:none;}
+.screen{display:none;min-height:100%;flex-direction:column;}
+.screen.active{display:flex;}
+.wrap{max-width:430px;margin:0 auto;width:100%;padding:0 18px;flex:1;display:flex;flex-direction:column;}
+
+/* ---------- HOME ---------- */
+.home-head{padding:26px 0 6px;text-align:center;}
+.logo{font-size:26px;font-weight:800;letter-spacing:5px;color:var(--blue);}
+.logo span{color:var(--gold);}
+.tagline{color:var(--sub);font-size:13px;margin-top:4px;}
+.langs{display:flex;gap:8px;justify-content:center;margin-top:12px;}
+.lang{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:6px 14px;font-size:13px;font-weight:600;color:var(--sub);cursor:pointer;}
+.lang.on{background:var(--blue);border-color:var(--blue);color:#fff;}
+.statrow{display:flex;gap:10px;margin:16px 0 6px;}
+.stat{flex:1;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 6px;text-align:center;}
+.stat b{font-size:20px;display:block;}
+.stat i{font-style:normal;font-size:11px;color:var(--sub);}
+.daily{margin:12px 0;background:linear-gradient(135deg,var(--blue),var(--blue2));color:#fff;
+  border-radius:20px;padding:18px;display:flex;align-items:center;justify-content:space-between;
+  box-shadow:0 8px 20px rgba(36,86,166,.25);cursor:pointer;}
+.daily .dl{font-size:11px;opacity:.8;letter-spacing:1px;}
+.daily .dt{font-size:19px;font-weight:700;margin-top:2px;}
+.daily .dd{font-size:12px;opacity:.85;margin-top:3px;}
+.daily .go{font-size:26px;}
+.sect{font-size:13px;font-weight:700;color:var(--sub);letter-spacing:1px;margin:14px 0 8px;}
+.levels{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding-bottom:30px;}
+.lvl{aspect-ratio:1;background:var(--card);border:1px solid var(--line);border-radius:14px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;font-weight:700;}
+.lvl small{font-weight:400;font-size:10px;color:var(--sub);}
+.lvl.done{background:#e7f6ee;border-color:#bfe6d2;color:var(--good);}
+.lvl.done::after{content:"✓";font-size:12px;}
+
+/* ---------- GAME ---------- */
+.gtop{display:flex;align-items:center;justify-content:space-between;padding:14px 0 8px;}
+.back{background:none;border:none;font-size:15px;color:var(--blue);font-weight:600;cursor:pointer;padding:6px;}
+.gtitle{font-weight:700;}
+.gtime{font-variant-numeric:tabular-nums;color:var(--sub);font-size:14px;min-width:44px;text-align:right;}
+.board{display:grid;gap:4px;margin:6px auto;width:min(88vw,340px);}
+.cell{position:relative;aspect-ratio:1;background:var(--cell);border:1.5px solid var(--line);border-radius:8px;
+  display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;cursor:pointer;}
+.cell.blk{background:var(--ink);border-color:var(--ink);border-radius:8px;cursor:default;}
+.cell.inword{background:var(--cellword);}
+.cell.sel{background:var(--cellsel);border-color:var(--blue2);}
+.cell.err{color:var(--bad);}
+.cell.ok{color:var(--good);}
+.cell .n{position:absolute;top:2px;left:4px;font-size:9px;font-weight:600;color:var(--sub);}
+.cluebar{margin:10px 0 6px;background:var(--card);border:1px solid var(--line);border-radius:14px;
+  padding:10px 12px;display:flex;align-items:center;gap:8px;min-height:52px;}
+.cluebar .arr{background:none;border:none;font-size:20px;color:var(--blue);cursor:pointer;padding:4px 8px;}
+.cluebar .txt{flex:1;text-align:center;font-size:14px;line-height:1.25;cursor:pointer;}
+.cluebar .txt b{color:var(--blue);margin-right:4px;}
+.tools{display:flex;gap:8px;margin-bottom:8px;}
+.tool{flex:1;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:9px 0;
+  font-size:13px;font-weight:600;color:var(--blue);cursor:pointer;}
+.kb{padding-bottom:max(14px,env(safe-area-inset-bottom));}
+.krow{display:flex;justify-content:center;gap:5px;margin-bottom:6px;}
+.key{flex:1;max-width:34px;height:44px;background:var(--card);border:1px solid var(--line);border-radius:8px;
+  font-size:16px;font-weight:600;color:var(--ink);cursor:pointer;}
+.key:active{background:var(--cellsel);}
+.key.wide{max-width:52px;font-size:18px;}
+.kb.ru .key{max-width:31px;font-size:14px;}
+.kb.ru .key.wide{max-width:48px;}
+
+/* ---------- WIN ---------- */
+#win{position:fixed;inset:0;background:rgba(22,35,58,.55);display:none;align-items:center;justify-content:center;z-index:50;}
+#win.show{display:flex;}
+.wincard{background:var(--card);border-radius:24px;padding:30px 26px;text-align:center;width:300px;
+  box-shadow:0 20px 50px rgba(0,0,0,.3);}
+.wincard .emoji{font-size:44px;}
+.wincard h2{margin:8px 0 4px;font-size:22px;}
+.wincard p{color:var(--sub);font-size:14px;margin-bottom:6px;}
+.wincard .wtime{font-size:26px;font-weight:800;color:var(--blue);margin:6px 0 14px;}
+.btn{display:block;width:100%;background:var(--blue);color:#fff;border:none;border-radius:14px;
+  padding:13px;font-size:15px;font-weight:700;cursor:pointer;}
+.jstreak-note{font-size:12px;color:var(--gold);font-weight:700;margin-bottom:10px;}
+</style>
+</head>
+<body>
+
+<div id="s-home" class="screen active"><div class="wrap">
+  <div class="home-head">
+    <div class="logo">NORD<span>KRYSS</span></div>
+    <div class="tagline" id="t-tagline"></div>
+    <div class="langs">
+      <button class="lang" id="lang-no" onclick="setLang('no')">🇳🇴 Norsk</button>
+      <button class="lang" id="lang-ru" onclick="setLang('ru')">🇷🇺 Русский</button>
+    </div>
+  </div>
+  <div class="statrow">
+    <div class="stat"><b id="st-solved">0</b><i id="t-solved"></i></div>
+    <div class="stat"><b id="st-streak">0 🔥</b><i id="t-streak"></i></div>
+    <div class="stat"><b id="st-best">–</b><i id="t-best"></i></div>
+  </div>
+  <div class="daily" onclick="openDaily()">
+    <div>
+      <div class="dl" id="t-daily"></div>
+      <div class="dt" id="daily-date">–</div>
+      <div class="dd" id="daily-state"></div>
+    </div>
+    <div class="go">→</div>
+  </div>
+  <div class="sect" id="t-sect"></div>
+  <div class="levels" id="levels"></div>
+</div></div>
+
+<div id="s-game" class="screen"><div class="wrap">
+  <div class="gtop">
+    <button class="back" onclick="goHome()" id="t-home">‹</button>
+    <div class="gtitle" id="gtitle">Nivå 1</div>
+    <div class="gtime" id="gtime">0:00</div>
+  </div>
+  <div class="board" id="board"></div>
+  <div class="cluebar">
+    <button class="arr" onclick="stepClue(-1)">‹</button>
+    <div class="txt" id="clue" onclick="toggleDir()"></div>
+    <button class="arr" onclick="stepClue(1)">›</button>
+  </div>
+  <div class="tools">
+    <button class="tool" onclick="hint()" id="t-hint"></button>
+    <button class="tool" onclick="checkAll()" id="t-check"></button>
+    <button class="tool" onclick="clearWrong()" id="t-clear"></button>
+  </div>
+  <div class="kb" id="kb"></div>
+</div></div>
+
+<div id="win">
+  <div class="wincard">
+    <div class="emoji">🎉</div>
+    <h2 id="t-win"></h2>
+    <p id="t-winsub"></p>
+    <div class="wtime" id="wtime">0:00</div>
+    <div class="jstreak-note" id="wstreak"></div>
+    <button class="btn" onclick="closeWin()" id="t-cont"></button>
+  </div>
+</div>
+
+<script>
+const DATA = { no: [{"size": 5, "grid": ["HUS#T", "Y#V#E", "TRAPP", "T#R#P", "E#TRE"], "clues": {"A": [{"n": 1, "clue": "Bolig med tak og vegger", "len": 3}, {"n": 4, "clue": "Går mellom etasjer", "len": 5}, {"n": 5, "clue": "Vokser i skogen", "len": 3}], "D": [{"n": 1, "clue": "Nordmenns fristed på fjellet", "len": 5}, {"n": 2, "clue": "Nattens farge", "len": 5}, {"n": 3, "clue": "Varmer på sofaen", "len": 5}]}}, {"size": 5, "grid": ["#L#P#", "REKE#", "#FAR#", "#SILD", "#E#E#"], "clues": {"A": [{"n": 3, "clue": "Rosa skalldyr", "len": 4}, {"n": 5, "clue": "Mannlig forelder", "len": 3}, {"n": 6, "clue": "Liten stimfisk", "len": 4}], "D": [{"n": 1, "clue": "Myk tradisjonsbakst", "len": 5}, {"n": 2, "clue": "Skatt fra østers", "len": 5}, {"n": 4, "clue": "Der båtene legger til", "len": 3}]}}, {"size": 5, "grid": ["TAK##", "I#O#M", "MYNTE", "E#G#L", "##EIK"], "clues": {"A": [{"n": 1, "clue": "Øverst på huset", "len": 3}, {"n": 4, "clue": "Frisk grønn krydderplante", "len": 5}, {"n": 5, "clue": "Sterkt løvtre", "len": 3}], "D": [{"n": 1, "clue": "Seksti minutter", "len": 4}, {"n": 2, "clue": "Landets overhode", "len": 5}, {"n": 3, "clue": "Hvit drikk fra kua", "len": 4}]}}, {"size": 5, "grid": ["RIS##", "A#P#P", "SKUTE", "K#R#N", "##VIN"], "clues": {"A": [{"n": 1, "clue": "Korn til grøt", "len": 3}, {"n": 4, "clue": "Gammelt seilskip", "len": 5}, {"n": 5, "clue": "Drikk laget av druer", "len": 3}], "D": [{"n": 1, "clue": "Motsatt av treg", "len": 4}, {"n": 2, "clue": "Liten byfugl", "len": 5}, {"n": 3, "clue": "Skriver med blekk", "len": 4}]}}, {"size": 5, "grid": ["K#TAK", "R#R#A", "EKORN", "P#L#E", "SOL#L"], "clues": {"A": [{"n": 2, "clue": "Øverst på huset", "len": 3}, {"n": 4, "clue": "Samler nøtter i treet", "len": 5}, {"n": 5, "clue": "Stjernen som varmer jorden", "len": 3}], "D": [{"n": 1, "clue": "Har klør i ferskvann", "len": 5}, {"n": 2, "clue": "Bor under broen i eventyr", "len": 5}, {"n": 3, "clue": "Krydder på grøten", "len": 5}]}}, {"size": 5, "grid": ["SIL#S", "E#ALV", "T#R#A", "ELV#R", "R#ERT"], "clues": {"A": [{"n": 1, "clue": "Skiller væske fra fast", "len": 3}, {"n": 4, "clue": "Lite eventyrvesen", "len": 3}, {"n": 5, "clue": "Rennende vann", "len": 3}, {"n": 6, "clue": "Liten grønn belgfrukt", "len": 3}], "D": [{"n": 1, "clue": "Fjellgård for dyr om sommeren", "len": 5}, {"n": 2, "clue": "Blir til sommerfugl", "len": 5}, {"n": 3, "clue": "Nattens farge", "len": 5}]}}, {"size": 5, "grid": ["##F#A", "#BRIS", "FROSK", "LESE#", "Y#T##"], "clues": {"A": [{"n": 3, "clue": "Lett vind", "len": 4}, {"n": 5, "clue": "Hopper og kvekker", "len": 5}, {"n": 6, "clue": "Gjøre med en bok", "len": 4}], "D": [{"n": 1, "clue": "Minusgrader", "len": 5}, {"n": 2, "clue": "Løvtre, eller rest etter bål", "len": 3}, {"n": 3, "clue": "Is som beveger seg sakte", "len": 3}, {"n": 4, "clue": "Bli til is", "len": 3}, {"n": 5, "clue": "Reiser i luften", "len": 3}]}}, {"size": 5, "grid": ["M#SKY", "U#T##", "SKOLE", "##R#L", "EIM#G"], "clues": {"A": [{"n": 2, "clue": "Hvit på himmelen", "len": 3}, {"n": 3, "clue": "Der barna lærer", "len": 5}, {"n": 5, "clue": "Svak lukt eller damp", "len": 3}], "D": [{"n": 1, "clue": "Liten gnager", "len": 3}, {"n": 2, "clue": "Kraftig uvær", "len": 5}, {"n": 4, "clue": "Skogens konge", "len": 3}]}}, {"size": 5, "grid": ["ROSA#", "A#T#S", "SLOTT", "K#R#U", "#SKJE"], "clues": {"A": [{"n": 1, "clue": "Lys rødfarge", "len": 4}, {"n": 4, "clue": "Kongens bolig", "len": 5}, {"n": 5, "clue": "Brukes til suppe", "len": 4}], "D": [{"n": 1, "clue": "Motsatt av treg", "len": 4}, {"n": 2, "clue": "Kommer med barn i eventyr", "len": 5}, {"n": 3, "clue": "Rom med sofa", "len": 4}]}}, {"size": 5, "grid": ["M#SEL", "OSP#Æ", "L#R#R", "T#ÅRE", "EIK#R"], "clues": {"A": [{"n": 2, "clue": "Svømmer med luffer", "len": 3}, {"n": 4, "clue": "Tre med skjelvende blader", "len": 3}, {"n": 5, "clue": "Brukes til å ro", "len": 3}, {"n": 6, "clue": "Sterkt løvtre", "len": 3}], "D": [{"n": 1, "clue": "Gyllent myrbær", "len": 5}, {"n": 2, "clue": "Norsk er et", "len": 5}, {"n": 3, "clue": "Underviser i skolen", "len": 5}]}}, {"size": 5, "grid": ["VEST#", "E##O#", "DRAGE", "#U##R", "#GEIT"], "clues": {"A": [{"n": 1, "clue": "Der solen går ned", "len": 4}, {"n": 3, "clue": "Flyr i snor i vinden", "len": 5}, {"n": 6, "clue": "Klatrer i fjellet og mekrer", "len": 4}], "D": [{"n": 1, "clue": "Brensel til peisen", "len": 3}, {"n": 2, "clue": "Kjører på skinner", "len": 3}, {"n": 4, "clue": "Mørkt korn", "len": 3}, {"n": 5, "clue": "Liten grønn belgfrukt", "len": 3}]}}, {"size": 5, "grid": ["OSP#S", "##OST", "R#T#I", "ØRE##", "D#TID"], "clues": {"A": [{"n": 1, "clue": "Tre med skjelvende blader", "len": 3}, {"n": 4, "clue": "God på brødskiva", "len": 3}, {"n": 6, "clue": "Vi hører med det", "len": 3}, {"n": 7, "clue": "Går alltid fremover", "len": 3}], "D": [{"n": 2, "clue": "Nordmenns grunnmat", "len": 5}, {"n": 3, "clue": "Smal vei i skogen", "len": 3}, {"n": 5, "clue": "Fargen på jordbær", "len": 3}]}}, {"size": 5, "grid": ["GRØNN", "Å##Å#", "SKOLE", "#Å##G", "FLAGG"], "clues": {"A": [{"n": 1, "clue": "Gressets farge", "len": 5}, {"n": 3, "clue": "Der barna lærer", "len": 5}, {"n": 6, "clue": "Rødt, hvitt og blått", "len": 5}], "D": [{"n": 1, "clue": "Stor fugl som snadrer", "len": 3}, {"n": 2, "clue": "Brukes til å sy", "len": 3}, {"n": 4, "clue": "Grønnsak i høstgryta", "len": 3}, {"n": 5, "clue": "Høna legger det", "len": 3}]}}, {"size": 5, "grid": ["HAVRE", "#L##R", "SVART", "I##E#", "LARVE"], "clues": {"A": [{"n": 1, "clue": "Korn til grøt", "len": 5}, {"n": 4, "clue": "Nattens farge", "len": 5}, {"n": 6, "clue": "Blir til sommerfugl", "len": 5}], "D": [{"n": 2, "clue": "Lite eventyrvesen", "len": 3}, {"n": 3, "clue": "Liten grønn belgfrukt", "len": 3}, {"n": 4, "clue": "Skiller væske fra fast", "len": 3}, {"n": 5, "clue": "Lur skogsdyr med rød pels", "len": 3}]}}], ru: [{"size": 5, "grid": ["ЛУК#Р", "О#О#Ы", "ДИВАН", "К#Е#О", "А#РАК"], "clues": {"A": [{"n": 1, "clue": "Овощ, доводящий до слёз", "len": 3}, {"n": 4, "clue": "Мягкий для отдыха", "len": 5}, {"n": 5, "clue": "Пятится назад с клешнями", "len": 3}], "D": [{"n": 1, "clue": "Плывёт на вёслах", "len": 5}, {"n": 2, "clue": "Лежит на полу", "len": 5}, {"n": 3, "clue": "Там торгуют с прилавков", "len": 5}]}}, {"size": 5, "grid": ["#Л#З#", "РОСА#", "#ДЫМ#", "#КРОТ", "#А#К#"], "clues": {"A": [{"n": 3, "clue": "Утренние капли на траве", "len": 4}, {"n": 5, "clue": "Идёт из трубы", "len": 3}, {"n": 6, "clue": "Слепой землекоп", "len": 4}], "D": [{"n": 1, "clue": "Плывёт на вёслах", "len": 5}, {"n": 2, "clue": "Дворец с башнями, или на двери", "len": 5}, {"n": 4, "clue": "С дырками на бутерброде", "len": 3}]}}, {"size": 5, "grid": ["ПЕС##", "У#А#П", "ТОПОР", "Ь#О#У", "##ГОД"], "clues": {"A": [{"n": 1, "clue": "Верный друг человека", "len": 3}, {"n": 4, "clue": "Рубит дрова", "len": 5}, {"n": 5, "clue": "Двенадцать месяцев", "len": 3}], "D": [{"n": 1, "clue": "Дорога к цели", "len": 4}, {"n": 2, "clue": "Обувь на зиму", "len": 5}, {"n": 3, "clue": "Маленький водоём", "len": 4}]}}, {"size": 5, "grid": ["#СТУЛ", "ПАР##", "#ДОМ#", "##ПЕС", "ГРАЧ#"], "clues": {"A": [{"n": 1, "clue": "На нём сидят", "len": 4}, {"n": 3, "clue": "Идёт от кипятка", "len": 3}, {"n": 4, "clue": "Жилище с крышей и стенами", "len": 3}, {"n": 6, "clue": "Верный друг человека", "len": 3}, {"n": 7, "clue": "Чёрная весенняя птица", "len": 4}], "D": [{"n": 1, "clue": "Там растут яблони", "len": 3}, {"n": 2, "clue": "Узкая дорожка", "len": 5}, {"n": 5, "clue": "Оружие рыцаря", "len": 3}]}}, {"size": 5, "grid": ["МАК##", "А#А#П", "МЕТРО", "А#О#Э", "##КИТ"], "clues": {"A": [{"n": 1, "clue": "Алый цветок с зёрнышками", "len": 3}, {"n": 4, "clue": "Поезд под землёй", "len": 5}, {"n": 5, "clue": "Морской гигант", "len": 3}], "D": [{"n": 1, "clue": "Самый родной человек", "len": 4}, {"n": 2, "clue": "Ледяная площадка", "len": 5}, {"n": 3, "clue": "Пишет стихи", "len": 4}]}}, {"size": 5, "grid": ["М#ШАГ", "Е#А#О", "ТОПОР", "Р#К#О", "ОСА#Х"], "clues": {"A": [{"n": 2, "clue": "Одно движение ноги", "len": 3}, {"n": 4, "clue": "Рубит дрова", "len": 5}, {"n": 5, "clue": "Полосатая и сердитая", "len": 3}], "D": [{"n": 1, "clue": "Поезд под землёй", "len": 5}, {"n": 2, "clue": "Греет голову", "len": 5}, {"n": 3, "clue": "Круглый в стручке", "len": 5}]}}, {"size": 5, "grid": ["СОВА#", "О#Е##", "КАТОК", "##Е#О", "#БРАТ"], "clues": {"A": [{"n": 1, "clue": "Ночная мудрая птица", "len": 4}, {"n": 3, "clue": "Ледяная площадка", "len": 5}, {"n": 5, "clue": "Сын тех же родителей", "len": 4}], "D": [{"n": 1, "clue": "Выжат из фруктов", "len": 3}, {"n": 2, "clue": "Гонит облака", "len": 5}, {"n": 4, "clue": "Мурлычет на диване", "len": 3}]}}, {"size": 5, "grid": ["МОСТ#", "И#А##", "РЫНОК", "##К#И", "#АИСТ"], "clues": {"A": [{"n": 1, "clue": "Перекинут через реку", "len": 4}, {"n": 3, "clue": "Там торгуют с прилавков", "len": 5}, {"n": 5, "clue": "Приносит детей, по легенде", "len": 4}], "D": [{"n": 1, "clue": "Вся планета, или не война", "len": 3}, {"n": 2, "clue": "Катят с горки зимой", "len": 5}, {"n": 4, "clue": "Морской гигант", "len": 3}]}}, {"size": 5, "grid": ["ДЕД#Ч", "##ИВА", "С#В#Й", "ОСА##", "М#НОС"], "clues": {"A": [{"n": 1, "clue": "Папа папы", "len": 3}, {"n": 4, "clue": "Плакучее дерево у воды", "len": 3}, {"n": 6, "clue": "Полосатая и сердитая", "len": 3}, {"n": 7, "clue": "Посередине лица", "len": 3}], "D": [{"n": 2, "clue": "Мягкий для отдыха", "len": 5}, {"n": 3, "clue": "Горячий напиток с заваркой", "len": 3}, {"n": 5, "clue": "Усатая речная рыба", "len": 3}]}}, {"size": 5, "grid": ["#СТОЛ", "##О#У", "САПОГ", "У#О##", "ПАРК#"], "clues": {"A": [{"n": 1, "clue": "За ним обедают", "len": 4}, {"n": 4, "clue": "Обувь на зиму", "len": 5}, {"n": 5, "clue": "Зелёный уголок города", "len": 4}], "D": [{"n": 2, "clue": "Рубит дрова", "len": 5}, {"n": 3, "clue": "Поле с травой и цветами", "len": 3}, {"n": 4, "clue": "Первое блюдо", "len": 3}]}}, {"size": 5, "grid": ["МАЯК#", "##ГОД", "#РОТ#", "САД##", "#КАША"], "clues": {"A": [{"n": 1, "clue": "Светит кораблям в ночи", "len": 4}, {"n": 4, "clue": "Двенадцать месяцев", "len": 3}, {"n": 5, "clue": "Им говорят и едят", "len": 3}, {"n": 6, "clue": "Там растут яблони", "len": 3}, {"n": 7, "clue": "Утренняя еда из крупы", "len": 4}], "D": [{"n": 2, "clue": "Малина или черника", "len": 5}, {"n": 3, "clue": "Мурлычет на диване", "len": 3}, {"n": 5, "clue": "Пятится назад с клешнями", "len": 3}]}}, {"size": 5, "grid": ["СЛОВО", "#У##С", "СКАЛА", "У##У#", "КНИГА"], "clues": {"A": [{"n": 1, "clue": "Состоит из букв", "len": 5}, {"n": 4, "clue": "Отвесный камень", "len": 5}, {"n": 6, "clue": "У неё много страниц", "len": 5}], "D": [{"n": 2, "clue": "Овощ, доводящий до слёз", "len": 3}, {"n": 3, "clue": "Полосатая и сердитая", "len": 3}, {"n": 4, "clue": "Ветка на стволе", "len": 3}, {"n": 5, "clue": "Поле с травой и цветами", "len": 3}]}}, {"size": 5, "grid": ["ЧАШКА", "А#К##", "СЛОВО", "##Л#С", "ТРАВА"], "clues": {"A": [{"n": 1, "clue": "Для чая", "len": 5}, {"n": 3, "clue": "Состоит из букв", "len": 5}, {"n": 5, "clue": "Зелёная под ногами", "len": 5}], "D": [{"n": 1, "clue": "Шестьдесят минут", "len": 3}, {"n": 2, "clue": "Там учатся дети", "len": 5}, {"n": 4, "clue": "Полосатая и сердитая", "len": 3}]}}, {"size": 5, "grid": ["БЕГ#М", "##ОСА", "Ж#Р#К", "УХО##", "К#ДУБ"], "clues": {"A": [{"n": 1, "clue": "Быстрее ходьбы", "len": 3}, {"n": 4, "clue": "Полосатая и сердитая", "len": 3}, {"n": 6, "clue": "Орган слуха", "len": 3}, {"n": 7, "clue": "Могучее дерево с желудями", "len": 3}], "D": [{"n": 2, "clue": "Большой населённый пункт", "len": 5}, {"n": 3, "clue": "Алый цветок с зёрнышками", "len": 3}, {"n": 5, "clue": "Гудит в майский вечер", "len": 3}]}}] };
+/* Nordkryss prototype logic (no/ru). */
+const LS = {
+  get(k, d) { try { const v = localStorage.getItem('nk-' + k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem('nk-' + k, JSON.stringify(v)); } catch (e) {} },
+};
+const $ = id => document.getElementById(id);
+const I18N = {
+  no: { tagline: 'Norske minikryssord — hver dag', solved: 'LØST', streakL: 'DAGER PÅ RAD', best: 'BESTE TID',
+        daily: 'DAGENS KRYSSORD', ready: 'Klar til å løses', done: 'Løst ✓ — kom tilbake i morgen',
+        sect: 'ALLE NIVÅER', home: '‹ Hjem', level: 'Nivå', dailyT: 'Dagens kryssord',
+        across: 'VANNRETT', down: 'LODDRETT', hint: '💡 Hint', check: '✓ Sjekk', clear: '⌫ Tøm feil',
+        win: 'Godt jobbet!', winsub: 'Du løste kryssordet', cont: 'Fortsett',
+        day: 'dag', days: 'dager', onrow: 'på rad', locale: 'nb-NO',
+        rows: ['QWERTYUIOPÅ', 'ASDFGHJKLØÆ', 'ZXCVBNM⌫'], re: /^[A-ZÆØÅ]$/ },
+  ru: { tagline: 'Мини-кроссворды — каждый день', solved: 'РЕШЕНО', streakL: 'ДНЕЙ ПОДРЯД', best: 'ЛУЧШЕЕ ВРЕМЯ',
+        daily: 'КРОССВОРД ДНЯ', ready: 'Готов к решению', done: 'Решён ✓ — возвращайся завтра',
+        sect: 'ВСЕ УРОВНИ', home: '‹ Домой', level: 'Уровень', dailyT: 'Кроссворд дня',
+        across: 'ПО ГОРИЗОНТАЛИ', down: 'ПО ВЕРТИКАЛИ', hint: '💡 Буква', check: '✓ Проверить', clear: '⌫ Стереть ошибки',
+        win: 'Отлично!', winsub: 'Кроссворд решён', cont: 'Дальше',
+        day: 'день', days: 'дней', onrow: 'подряд', locale: 'ru-RU',
+        rows: ['ЙЦУКЕНГШЩЗХ', 'ФЫВАПРОЛДЖЭ', 'ЯЧСМИТЬБЮ⌫'], re: /^[А-ЯЁ]$/ },
+};
+let LANG = LS.get('lang', 'no');
+let PUZZLES = DATA[LANG];
+const T = () => I18N[LANG];
+function setLang(l) {
+  if (!DATA[l]) return;
+  LANG = l; LS.set('lang', l); PUZZLES = DATA[l];
+  applyT(); buildKb(); renderHome();
+}
+function applyT() {
+  const t = T();
+  $('t-tagline').textContent = t.tagline; $('t-solved').textContent = t.solved;
+  $('t-streak').textContent = t.streakL; $('t-best').textContent = t.best;
+  $('t-daily').textContent = t.daily; $('t-sect').textContent = t.sect;
+  $('t-home').textContent = t.home; $('t-hint').textContent = t.hint;
+  $('t-check').textContent = t.check; $('t-clear').textContent = t.clear;
+  $('t-win').textContent = t.win; $('t-winsub').textContent = t.winsub;
+  $('t-cont').textContent = t.cont;
+  $('lang-no').classList.toggle('on', LANG === 'no');
+  $('lang-ru').classList.toggle('on', LANG === 'ru');
+  document.getElementById('kb').classList.toggle('ru', LANG === 'ru');
+}
+const todayKey = () => new Date().toISOString().slice(0, 10);
+const fmt = s => Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+
+/* --- модель пазла --- */
+function slotsOf(grid) {
+  const n = grid.length, out = [];
+  for (let r = 0; r < n; r++) {
+    let c = 0;
+    while (c < n) {
+      if (grid[r][c] !== '#') {
+        const c0 = c;
+        while (c < n && grid[r][c] !== '#') c++;
+        if (c - c0 >= 3) out.push({ d: 'A', r, c: c0, len: c - c0 });
+      } else c++;
+    }
+  }
+  for (let c = 0; c < n; c++) {
+    let r = 0;
+    while (r < n) {
+      if (grid[r][c] !== '#') {
+        const r0 = r;
+        while (r < n && grid[r][c] !== '#') r++;
+        if (r - r0 >= 3) out.push({ d: 'D', r: r0, c, len: r - r0 });
+      } else r++;
+    }
+  }
+  return out;
+}
+function cellsOf(s) {
+  const out = [];
+  for (let i = 0; i < s.len; i++) out.push(s.d === 'A' ? [s.r, s.c + i] : [s.r + i, s.c]);
+  return out;
+}
+function numberSlots(grid, ss) {
+  const starts = new Set(ss.map(s => s.r + ',' + s.c));
+  const num = {}; let k = 0; const n = grid.length;
+  for (let r = 0; r < n; r++) for (let c = 0; c < n; c++)
+    if (starts.has(r + ',' + c)) num[r + ',' + c] = ++k;
+  ss.forEach(s => s.n = num[s.r + ',' + s.c]);
+  return num;
+}
+
+/* --- состояние --- */
+let cur = 0, dir = 'A', sel = null, timer = null, secs = 0, model = null;
+
+function loadPuzzle(idx) {
+  cur = idx;
+  const p = PUZZLES[idx];
+  const grid = p.grid.map(row => row.split(''));
+  const ss = slotsOf(grid);
+  const num = numberSlots(grid, ss);
+  const clueOf = {};
+  ['A', 'D'].forEach(d => p.clues[d].forEach(c => clueOf[d + c.n] = c.clue));
+  ss.forEach(s => s.clue = clueOf[s.d + s.n] || '');
+  const cellSlots = {};
+  ss.forEach((s, i) => cellsOf(s).forEach(([r, c]) => {
+    (cellSlots[r + ',' + c] = cellSlots[r + ',' + c] || []).push(i);
+  }));
+  const prog = LS.get('prog-' + LANG, {})[idx] || {};
+  model = { p, grid, ss, num, cellSlots, n: grid.length, entry: {} };
+  Object.assign(model.entry, prog);
+  const first = ss[0];
+  sel = { r: first.r, c: first.c }; dir = first.d;
+  secs = 0;
+  renderBoard();
+  $('gtitle').textContent = idx === dailyIdx() ? T().dailyT : T().level + ' ' + (idx + 1);
+  clearInterval(timer);
+  if (!isSolved(idx)) timer = setInterval(() => { secs++; $('gtime').textContent = fmt(secs); }, 1000);
+  $('gtime').textContent = '0:00';
+  show('s-game');
+}
+
+function saveProg() {
+  const all = LS.get('prog-' + LANG, {}); all[cur] = model.entry; LS.set('prog-' + LANG, all);
+}
+const isSolved = idx => LS.get('solved-' + LANG, []).includes(idx);
+
+/* --- рендер --- */
+function renderBoard() {
+  const b = $('board'); b.style.gridTemplateColumns = `repeat(${model.n},1fr)`;
+  b.innerHTML = '';
+  for (let r = 0; r < model.n; r++) for (let c = 0; c < model.n; c++) {
+    const div = document.createElement('div');
+    const ch = model.grid[r][c];
+    if (ch === '#') div.className = 'cell blk';
+    else {
+      div.className = 'cell';
+      div.id = 'cell-' + r + '-' + c;
+      const nn = model.num[r + ',' + c];
+      div.innerHTML = (nn ? `<span class="n">${nn}</span>` : '') + `<span class="l"></span>`;
+      div.onclick = () => tapCell(r, c);
+    }
+    b.appendChild(div);
+  }
+  refresh();
+}
+
+function curSlot() {
+  const list = (model.cellSlots[sel.r + ',' + sel.c] || []).map(i => model.ss[i]);
+  return list.find(s => s.d === dir) || list[0];
+}
+
+function refresh() {
+  const s = curSlot(); if (s) dir = s.d;
+  const inWord = new Set(s ? cellsOf(s).map(([r, c]) => r + ',' + c) : []);
+  for (let r = 0; r < model.n; r++) for (let c = 0; c < model.n; c++) {
+    const el = $('cell-' + r + '-' + c); if (!el) continue;
+    el.classList.toggle('inword', inWord.has(r + ',' + c));
+    el.classList.toggle('sel', sel.r === r && sel.c === c);
+    const v = model.entry[r + ',' + c] || '';
+    el.querySelector('.l').textContent = v;
+  }
+  if (s) $('clue').innerHTML =
+    `<b>${s.n} ${s.d === 'A' ? T().across : T().down}</b> ${s.clue} <span style="color:var(--sub)">(${s.len})</span>`;
+}
+
+/* --- взаимодействие --- */
+function tapCell(r, c) {
+  if (sel.r === r && sel.c === c) toggleDir();
+  else { sel = { r, c }; const list = (model.cellSlots[r + ',' + c] || []).map(i => model.ss[i]); if (!list.find(s => s.d === dir)) dir = list[0].d; }
+  refresh();
+}
+function toggleDir() {
+  const list = (model.cellSlots[sel.r + ',' + sel.c] || []).map(i => model.ss[i]);
+  if (list.length > 1) { dir = dir === 'A' ? 'D' : 'A'; if (!list.find(s => s.d === dir)) dir = list[0].d; }
+  refresh();
+}
+function stepClue(step) {
+  const s = curSlot(); const i = model.ss.indexOf(s);
+  const j = (i + step + model.ss.length) % model.ss.length;
+  const t = model.ss[j]; dir = t.d; sel = { r: t.r, c: t.c }; refresh();
+}
+function typeKey(ch) {
+  model.entry[sel.r + ',' + sel.c] = ch;
+  const el = $('cell-' + sel.r + '-' + sel.c);
+  el.classList.remove('err');
+  saveProg();
+  const s = curSlot(); const cs = cellsOf(s);
+  const i = cs.findIndex(([r, c]) => r === sel.r && c === sel.c);
+  for (let k = i + 1; k < cs.length; k++) {
+    const [r, c] = cs[k];
+    if (!model.entry[r + ',' + c]) { sel = { r, c }; break; }
+    if (k === cs.length - 1) { const [rr, cc] = cs[Math.min(i + 1, cs.length - 1)]; sel = { r: rr, c: cc }; }
+  }
+  refresh(); winCheck();
+}
+function backKey() {
+  const key = sel.r + ',' + sel.c;
+  if (model.entry[key]) { delete model.entry[key]; }
+  else {
+    const s = curSlot(); const cs = cellsOf(s);
+    const i = cs.findIndex(([r, c]) => r === sel.r && c === sel.c);
+    if (i > 0) { const [r, c] = cs[i - 1]; sel = { r, c }; delete model.entry[r + ',' + c]; }
+  }
+  saveProg(); refresh();
+}
+function hint() {
+  const ch = model.grid[sel.r][sel.c];
+  typeKey(ch);
+}
+function checkAll() {
+  let wrong = 0;
+  for (const key in model.entry) {
+    const [r, c] = key.split(',').map(Number);
+    const ok = model.entry[key] === model.grid[r][c];
+    const el = $('cell-' + r + '-' + c);
+    el.classList.toggle('err', !ok);
+    if (!ok) wrong++;
+  }
+  if (!wrong) winCheck(true);
+}
+function clearWrong() {
+  for (const key in model.entry) {
+    const [r, c] = key.split(',').map(Number);
+    if (model.entry[key] !== model.grid[r][c]) {
+      delete model.entry[key];
+      $('cell-' + r + '-' + c).classList.remove('err');
+    }
+  }
+  saveProg(); refresh();
+}
+
+/* --- победа --- */
+function winCheck(force) {
+  for (let r = 0; r < model.n; r++) for (let c = 0; c < model.n; c++) {
+    if (model.grid[r][c] === '#') continue;
+    if (model.entry[r + ',' + c] !== model.grid[r][c]) return false;
+  }
+  clearInterval(timer);
+  const solved = LS.get('solved-' + LANG, []);
+  if (!solved.includes(cur)) { solved.push(cur); LS.set('solved-' + LANG, solved); }
+  const best = LS.get('best', null);
+  if (secs > 0 && (!best || secs < best)) LS.set('best', secs);
+  const st = LS.get('streak', { last: '', n: 0 });
+  const today = todayKey();
+  if (st.last !== today) {
+    const y = new Date(Date.now() - 864e5).toISOString().slice(0, 10);
+    st.n = st.last === y ? st.n + 1 : 1; st.last = today; LS.set('streak', st);
+  }
+  $('wtime').textContent = fmt(secs);
+  $('wstreak').textContent = '🔥 ' + st.n + ' ' + (st.n === 1 ? T().day : T().days) + ' ' + T().onrow;
+  $('win').classList.add('show');
+  return true;
+}
+function closeWin() { $('win').classList.remove('show'); goHome(); }
+
+/* --- клавиатура --- */
+function buildKb() {
+  const kb = $('kb'); kb.innerHTML = '';
+  T().rows.forEach(row => {
+    const div = document.createElement('div'); div.className = 'krow';
+    for (const ch of row) {
+      const b = document.createElement('button');
+      b.className = 'key' + (ch === '⌫' ? ' wide' : '');
+      b.textContent = ch;
+      b.onclick = () => ch === '⌫' ? backKey() : typeKey(ch);
+      div.appendChild(b);
+    }
+    kb.appendChild(div);
+  });
+}
+document.addEventListener('keydown', e => {
+  if (!document.getElementById('s-game').classList.contains('active')) return;
+  const k = e.key.toUpperCase();
+  if (k === 'BACKSPACE') backKey();
+  else if (T().re.test(k)) typeKey(k);
+});
+
+/* --- главный экран --- */
+function dailyIdx() { return Math.floor(Date.now() / 864e5) % PUZZLES.length; }
+function openDaily() { loadPuzzle(dailyIdx()); }
+function goHome() { clearInterval(timer); renderHome(); show('s-home'); }
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  $(id).classList.add('active');
+}
+function renderHome() {
+  const solved = LS.get('solved-' + LANG, []);
+  $('st-solved').textContent = solved.length;
+  const st = LS.get('streak', { n: 0 });
+  $('st-streak').textContent = st.n + ' 🔥';
+  const best = LS.get('best', null);
+  $('st-best').textContent = best ? fmt(best) : '–';
+  const d = new Date();
+  $('daily-date').textContent = d.toLocaleDateString(T().locale, { day: 'numeric', month: 'long' });
+  $('daily-state').textContent = solved.includes(dailyIdx()) ? T().done : T().ready;
+  const lv = $('levels'); lv.innerHTML = '';
+  PUZZLES.forEach((p, i) => {
+    const div = document.createElement('div');
+    div.className = 'lvl' + (solved.includes(i) ? ' done' : '');
+    div.innerHTML = `${i + 1}<small>5×5</small>`;
+    div.onclick = () => loadPuzzle(i);
+    lv.appendChild(div);
+  });
+}
+applyT(); buildKb(); renderHome();
+
+</script>
+</body>
+</html>
