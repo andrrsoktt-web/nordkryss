@@ -45,7 +45,7 @@
  },
  {
   "id": "berry",
-  "subject": "a berry"
+  "subject": "a sprig of red lingonberries with green leaves"
  },
  {
   "id": "apple",
@@ -333,7 +333,7 @@
  },
  {
   "id": "lamp",
-  "subject": "a lamp"
+  "subject": "a table lamp with a shade"
  },
  {
   "id": "candle",
@@ -409,7 +409,7 @@
  },
  {
   "id": "ball",
-  "subject": "a ball"
+  "subject": "a classic black and white soccer ball"
  },
  {
   "id": "kite",
@@ -417,7 +417,7 @@
  },
  {
   "id": "drum",
-  "subject": "a drum"
+  "subject": "a snare drum with two drumsticks"
  },
  {
   "id": "guitar",
@@ -545,7 +545,7 @@
  },
  {
   "id": "flag",
-  "subject": "a flag"
+  "subject": "a red triangular pennant flag on a wooden pole"
  },
  {
   "id": "map",
@@ -561,7 +561,7 @@
  },
  {
   "id": "lake",
-  "subject": "a lake"
+  "subject": "a small round blue lake with a pine tree and a rock on its shore"
  },
  {
   "id": "river",
@@ -597,7 +597,7 @@
  },
  {
   "id": "stone",
-  "subject": "a stone"
+  "subject": "a single smooth grey boulder rock"
  },
  {
   "id": "lighthouse",
@@ -613,11 +613,11 @@
  },
  {
   "id": "ring",
-  "subject": "a ring"
+  "subject": "a golden finger ring with a red gemstone"
  },
  {
   "id": "coin",
-  "subject": "a coin"
+  "subject": "a shiny gold coin with a crown emblem"
  },
  {
   "id": "nut",
