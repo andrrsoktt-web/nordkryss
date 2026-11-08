@@ -30,10 +30,11 @@ def pick_model():
     except Exception as e: print('model list failed:',e)
     return 'grok-2-image'
 
-STYLE=("flat Scandinavian folk-art illustration, simple bold rounded shapes, limited Nordic palette "
-       "(deep fjord blue, warm birch beige, berry red, pine green, snow white), subtle paper grain, "
-       "friendly and clean, single centered subject with generous empty margin, plain solid very light "
-       "blue-grey background #E7EEF6, no text, no letters, no numbers, no border, no frame")
+STYLE=("flat Scandinavian folk-art illustration, simple bold rounded shapes, the subject in its natural "
+       "instantly recognizable colors, small Nordic folk ornament accents (tiny dots, leaves, hearts), "
+       "subtle paper grain, friendly and clean, clearly readable at small icon size, single centered subject "
+       "with generous empty margin, plain solid very light blue-grey background #E7EEF6, no text, no letters, "
+       "no numbers, no border, no frame")
 def prompt(it):
     k=it.get('kind')
     if k=='hero':
