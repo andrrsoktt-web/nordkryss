@@ -1,457 +1,713 @@
-<!DOCTYPE html>
-<html lang="nb">
+<!doctype html>
+<html lang="ru">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-<title>Nordkryss</title>
-<style>
-:root{
-  --bg:#f4f6fb; --card:#ffffff; --ink:#16233a; --sub:#6b7a94;
-  --blue:#2456a6; --blue2:#3c74d4; --gold:#e8a13c; --good:#2e9e6b; --bad:#d5544f;
-  --cell:#ffffff; --cellsel:#cfe0fa; --cellword:#e7effc; --line:#dfe5f0;
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Nordkryss">
+<meta name="theme-color" content="#bfe0f0">
+<title>Nordkryss — сканворды</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>:root{
+  --fjord:#1d3557; --fjord2:#274b73; --ice:#f4f8fb; --snow:#ffffff;
+  --mist:#dfe9f2; --clue:#e7eef6; --clue-ink:#2c4565; --line:#b9c9da;
+  --birch:#f6e7c8; --birch2:#e9d2a4; --birch-ink:#5a3e1b;
+  --berry:#c8102e; --pine:#2f6b4f; --gold:#f2b632; --sel:#cfe4ff; --act:#8fc1ff;
+  --ok:#3fae6a; --bad:#e04848; --ink:#1b2b3c;
+  --cell:44px;
 }
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-html,body{height:100%;}
-body{background:var(--bg);color:var(--ink);
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
-  overscroll-behavior:none;user-select:none;-webkit-user-select:none;}
-.screen{display:none;min-height:100%;flex-direction:column;}
-.screen.active{display:flex;}
-.wrap{max-width:430px;margin:0 auto;width:100%;padding:0 18px;flex:1;display:flex;flex-direction:column;}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--fjord);color:var(--ink);
+  font-family:'Nunito',system-ui,-apple-system,sans-serif;overscroll-behavior:none;user-select:none;-webkit-user-select:none}
+button{font-family:inherit;border:0;cursor:pointer}
+.screen{position:fixed;inset:0;display:none;flex-direction:column;overflow:hidden}
+.screen.on{display:flex}
 
-/* ---------- HOME ---------- */
-.home-head{padding:26px 0 6px;text-align:center;}
-.logo{font-size:26px;font-weight:800;letter-spacing:5px;color:var(--blue);}
-.logo span{color:var(--gold);}
-.tagline{color:var(--sub);font-size:13px;margin-top:4px;}
-.langs{display:flex;gap:8px;justify-content:center;margin-top:12px;}
-.lang{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:6px 14px;font-size:13px;font-weight:600;color:var(--sub);cursor:pointer;}
-.lang.on{background:var(--blue);border-color:var(--blue);color:#fff;}
-.statrow{display:flex;gap:10px;margin:16px 0 6px;}
-.stat{flex:1;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 6px;text-align:center;}
-.stat b{font-size:20px;display:block;}
-.stat i{font-style:normal;font-size:11px;color:var(--sub);}
-.daily{margin:12px 0;background:linear-gradient(135deg,var(--blue),var(--blue2));color:#fff;
-  border-radius:20px;padding:18px;display:flex;align-items:center;justify-content:space-between;
-  box-shadow:0 8px 20px rgba(36,86,166,.25);cursor:pointer;}
-.daily .dl{font-size:11px;opacity:.8;letter-spacing:1px;}
-.daily .dt{font-size:19px;font-weight:700;margin-top:2px;}
-.daily .dd{font-size:12px;opacity:.85;margin-top:3px;}
-.daily .go{font-size:26px;}
-.sect{font-size:13px;font-weight:700;color:var(--sub);letter-spacing:1px;margin:14px 0 8px;}
-.levels{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding-bottom:30px;}
-.lvl{aspect-ratio:1;background:var(--card);border:1px solid var(--line);border-radius:14px;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;font-weight:700;}
-.lvl small{font-weight:400;font-size:10px;color:var(--sub);}
-.lvl.done{background:#e7f6ee;border-color:#bfe6d2;color:var(--good);}
-.lvl.done::after{content:"✓";font-size:12px;}
+/* ---------- nordic backdrop ---------- */
+.sky{position:absolute;inset:0;z-index:0;background:linear-gradient(180deg,#bfe0f0 0%,#e6f3f8 55%,#f4f8fb 100%);overflow:hidden}
+.sky svg{position:absolute;left:0;right:0;top:0;width:100%;height:auto}
+.sky .aur{position:absolute;inset:-20% -10% auto -10%;height:60%;opacity:.55;filter:blur(18px);
+  background:radial-gradient(60% 40% at 30% 40%,#7fe3c1 0%,transparent 70%),radial-gradient(50% 35% at 70% 30%,#9fd0ff 0%,transparent 70%);
+  animation:aur 14s ease-in-out infinite alternate}
+@keyframes aur{to{transform:translateX(6%) skewX(-6deg);opacity:.75}}
+.sky.night{background:linear-gradient(180deg,#0f2440 0%,#1d3557 60%,#2a4a6f 100%)}
+.sky.night .aur{opacity:.8}
+.flake{position:absolute;top:-10px;color:#fff;opacity:.8;font-size:10px;animation:fall linear infinite;pointer-events:none}
+@keyframes fall{to{transform:translateY(110vh) rotate(360deg)}}
 
-/* ---------- GAME ---------- */
-.gtop{display:flex;align-items:center;justify-content:space-between;padding:14px 0 8px;}
-.back{background:none;border:none;font-size:15px;color:var(--blue);font-weight:600;cursor:pointer;padding:6px;}
-.gtitle{font-weight:700;}
-.gtime{font-variant-numeric:tabular-nums;color:var(--sub);font-size:14px;min-width:44px;text-align:right;}
-.board{display:grid;gap:4px;margin:6px auto;width:min(88vw,340px);}
-.cell{position:relative;aspect-ratio:1;background:var(--cell);border:1.5px solid var(--line);border-radius:8px;
-  display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;cursor:pointer;}
-.cell.blk{background:var(--ink);border-color:var(--ink);border-radius:8px;cursor:default;}
-.cell.inword{background:var(--cellword);}
-.cell.sel{background:var(--cellsel);border-color:var(--blue2);}
-.cell.err{color:var(--bad);}
-.cell.ok{color:var(--good);}
-.cell .n{position:absolute;top:2px;left:4px;font-size:9px;font-weight:600;color:var(--sub);}
-.cluebar{margin:10px 0 6px;background:var(--card);border:1px solid var(--line);border-radius:14px;
-  padding:10px 12px;display:flex;align-items:center;gap:8px;min-height:52px;}
-.cluebar .arr{background:none;border:none;font-size:20px;color:var(--blue);cursor:pointer;padding:4px 8px;}
-.cluebar .txt{flex:1;text-align:center;font-size:14px;line-height:1.25;cursor:pointer;}
-.cluebar .txt b{color:var(--blue);margin-right:4px;}
-.tools{display:flex;gap:8px;margin-bottom:8px;}
-.tool{flex:1;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:9px 0;
-  font-size:13px;font-weight:600;color:var(--blue);cursor:pointer;}
-.kb{padding-bottom:max(14px,env(safe-area-inset-bottom));}
-.krow{display:flex;justify-content:center;gap:5px;margin-bottom:6px;}
-.key{flex:1;max-width:34px;height:44px;background:var(--card);border:1px solid var(--line);border-radius:8px;
-  font-size:16px;font-weight:600;color:var(--ink);cursor:pointer;}
-.key:active{background:var(--cellsel);}
-.key.wide{max-width:52px;font-size:18px;}
-.kb.ru .key{max-width:31px;font-size:14px;}
-.kb.ru .key.wide{max-width:48px;}
+/* ---------- top bar ---------- */
+.top{position:relative;z-index:2;display:flex;align-items:center;justify-content:space-between;padding:calc(env(safe-area-inset-top) + 8px) 12px 6px}
+.ibtn{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.85);display:grid;place-items:center;font-size:18px;color:var(--fjord);box-shadow:0 2px 6px rgba(29,53,87,.18)}
+.coins{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.9);border-radius:20px;padding:5px 10px 5px 6px;font-weight:800;color:var(--fjord);box-shadow:0 2px 6px rgba(29,53,87,.18)}
+.coin{width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffe9a3,#f2b632 55%,#c98a12);box-shadow:inset 0 -2px 0 rgba(0,0,0,.15);display:grid;place-items:center;font-size:12px;color:#8a5a00}
+.coins .plus{width:18px;height:18px;border-radius:50%;background:var(--fjord2);color:#fff;font-size:13px;display:grid;place-items:center}
 
-/* ---------- WIN ---------- */
-#win{position:fixed;inset:0;background:rgba(22,35,58,.55);display:none;align-items:center;justify-content:center;z-index:50;}
-#win.show{display:flex;}
-.wincard{background:var(--card);border-radius:24px;padding:30px 26px;text-align:center;width:300px;
-  box-shadow:0 20px 50px rgba(0,0,0,.3);}
-.wincard .emoji{font-size:44px;}
-.wincard h2{margin:8px 0 4px;font-size:22px;}
-.wincard p{color:var(--sub);font-size:14px;margin-bottom:6px;}
-.wincard .wtime{font-size:26px;font-weight:800;color:var(--blue);margin:6px 0 14px;}
-.btn{display:block;width:100%;background:var(--blue);color:#fff;border:none;border-radius:14px;
-  padding:13px;font-size:15px;font-weight:700;cursor:pointer;}
-.jstreak-note{font-size:12px;color:var(--gold);font-weight:700;margin-bottom:10px;}
+/* ---------- versus ---------- */
+.vs{position:relative;z-index:2;display:flex;align-items:center;justify-content:center;gap:10px;margin:2px 0 6px;font-weight:700;color:var(--fjord);font-size:13px}
+.vs .sc{min-width:52px;text-align:center;padding:4px 10px;border-radius:10px;background:#fff;font-size:17px;font-weight:900;box-shadow:0 2px 0 rgba(29,53,87,.15);transition:transform .2s}
+.vs .me .sc{color:var(--fjord2);outline:2px solid var(--act)}
+.vs .op .sc{color:#7b8aa0}
+.vs .pl{display:flex;align-items:center;gap:6px}
+.vs .bump{transform:scale(1.25)}
+.vs .x{opacity:.6;font-size:11px}
+
+/* ---------- board ---------- */
+.boardwrap{position:relative;z-index:2;flex:1;display:flex;align-items:center;justify-content:center;padding:0 6px;min-height:0}
+.board{display:grid;gap:0;background:var(--line);border:2px solid var(--fjord2);border-radius:8px;overflow:hidden;box-shadow:0 8px 24px rgba(29,53,87,.25);touch-action:none}
+.c{width:var(--cell);height:var(--cell);position:relative;background:var(--snow);border-right:1px solid var(--line);border-bottom:1px solid var(--line);
+  display:grid;place-items:center;font-weight:900;font-size:calc(var(--cell)*.56);color:var(--ink);text-transform:uppercase;transition:background .15s}
+.c.k{background:var(--clue);color:var(--clue-ink);font-weight:800;text-transform:uppercase;font-size:calc(var(--cell)*.155);line-height:1.05;padding:1px;text-align:center;overflow:hidden;letter-spacing:-.02em;cursor:pointer}
+.c.k .half{position:absolute;left:0;right:0;height:50%;display:grid;place-items:center;padding:1px 2px;overflow:hidden}
+.c.k .half.t{top:0;border-bottom:1px solid var(--line)}
+.c.k .half.b{bottom:0}
+.c.k .full{position:absolute;inset:0;display:grid;place-items:center;padding:2px}
+.c.k img{width:92%;height:92%;object-fit:contain;pointer-events:none}
+.c.k .half img{width:auto;height:96%}
+.c.k .emo{font-size:calc(var(--cell)*.62);line-height:1}
+.c.k .half .emo{font-size:calc(var(--cell)*.34)}
+.c.k .ar{position:absolute;width:0;height:0;border:4px solid transparent}
+.c.k .ar.r{right:-1px;border-left:5px solid var(--clue-ink);border-right:0}
+.c.k .ar.d{bottom:-1px;border-top:5px solid var(--clue-ink);border-bottom:0}
+.c.k.sel{background:#d6e7fb}
+.c.deco{background:var(--clue) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'><g fill='%23274b73' opacity='.22'><path d='M20 4l4 10 10-4-4 10 10 4-10 4 4 10-10-4-4 10-4-10-10 4 4-10-10-4 10-4-4-10 10 4z'/></g><circle cx='20' cy='20' r='3.2' fill='%23c8102e' opacity='.35'/></svg>") center/72% no-repeat}
+.c.badge{background:var(--fjord2);color:#fff;font-size:calc(var(--cell)*.15);font-weight:900;text-transform:none;line-height:1.1}
+.c.badge b{display:block;font-size:calc(var(--cell)*.36)}
+.c.w{cursor:pointer}
+.c.w.sel{background:var(--sel)}
+.c.w.act{background:var(--act)}
+.c.w.act::after{content:'';position:absolute;inset:3px;border-radius:5px;border:2px solid #2f7fd9;animation:blink 1.1s ease-in-out infinite}
+@keyframes blink{50%{opacity:.25}}
+.c.w.drop{background:#ffe9a8}
+.c.w .ch{display:inline-block}
+.c.w .ch.pop{animation:pop .35s cubic-bezier(.2,1.6,.4,1)}
+@keyframes pop{0%{transform:scale(.2)}100%{transform:scale(1)}}
+.c.w.bad{animation:shake .35s;background:#ffd2d2}
+@keyframes shake{20%,60%{transform:translateX(-4px)}40%,80%{transform:translateX(4px)}}
+.c.w.done{background:#fff}
+.c.w.wave{animation:wave .55s ease-out both}
+@keyframes wave{0%{background:var(--snow)}35%{background:#ffe08a;transform:scale(1.12);z-index:3;box-shadow:0 0 0 2px var(--gold)}100%{background:#fff8e0;transform:scale(1)}}
+.c.w.hint .ch{color:var(--pine)}
+
+/* ---------- floating fx ---------- */
+.fx{position:fixed;z-index:50;pointer-events:none}
+.plusN{font-weight:900;color:var(--fjord2);font-size:20px;text-shadow:0 2px 0 #fff;animation:rise 1s ease-out forwards}
+@keyframes rise{0%{opacity:0;transform:translate(-50%,0) scale(.6)}20%{opacity:1;transform:translate(-50%,-10px) scale(1.15)}100%{opacity:0;transform:translate(-50%,-56px) scale(1)}}
+.react{left:50%;top:42%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:4px;animation:reactA 1.4s cubic-bezier(.2,1.4,.4,1) forwards}
+.react .m{font-size:64px;filter:drop-shadow(0 6px 8px rgba(0,0,0,.2))}
+.react .t{background:#fff;color:var(--fjord2);font-weight:900;font-size:22px;padding:6px 16px;border-radius:16px;box-shadow:0 6px 18px rgba(29,53,87,.3);border:2px solid var(--act)}
+@keyframes reactA{0%{opacity:0;transform:translate(-50%,-50%) scale(.3) rotate(-8deg)}18%{opacity:1;transform:translate(-50%,-50%) scale(1.08) rotate(3deg)}30%{transform:translate(-50%,-50%) scale(1) rotate(0)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-80%) scale(.9)}}
+.flytile{position:fixed;z-index:60;pointer-events:none;transition:transform .28s cubic-bezier(.3,.8,.4,1),opacity .28s}
+.spark{position:fixed;z-index:55;width:7px;height:7px;border-radius:50%;pointer-events:none;animation:sp .7s ease-out forwards}
+@keyframes sp{to{transform:translate(var(--dx),var(--dy)) scale(.2);opacity:0}}
+
+/* ---------- tray ---------- */
+.tray{position:relative;z-index:3;display:flex;justify-content:center;gap:8px;padding:10px 8px 4px;min-height:66px}
+.tile{width:48px;height:52px;border-radius:10px;background:linear-gradient(180deg,var(--birch) 0%,var(--birch2) 100%);
+  box-shadow:0 4px 0 #c9a96a,0 6px 10px rgba(90,62,27,.25);display:grid;place-items:center;font-size:28px;font-weight:900;color:var(--birch-ink);text-transform:uppercase;
+  touch-action:none;transition:transform .15s,opacity .2s;position:relative}
+.tile::after{content:'';position:absolute;inset:4px;border-radius:7px;border:1px dashed rgba(90,62,27,.18)}
+.tile:active,.tile.lift{transform:translateY(-6px) scale(1.06)}
+.tile.gone{opacity:0;transform:scale(.4)}
+.tile.new{animation:tin .35s cubic-bezier(.2,1.5,.4,1)}
+@keyframes tin{from{transform:translateY(30px) scale(.5);opacity:0}}
+.tile.drag{position:fixed;z-index:70;pointer-events:none;transform:scale(1.15)}
+.tile.ph{visibility:hidden}
+
+/* ---------- tools ---------- */
+.tools{position:relative;z-index:3;display:flex;justify-content:space-around;align-items:flex-end;padding:6px 10px calc(env(safe-area-inset-bottom) + 10px)}
+.tool{display:flex;flex-direction:column;align-items:center;gap:2px;background:none;color:var(--fjord);font-size:11px;font-weight:800;position:relative}
+.tool .ic{width:46px;height:46px;border-radius:14px;background:#fff;display:grid;place-items:center;font-size:24px;box-shadow:0 3px 0 rgba(29,53,87,.18)}
+.tool .pr{position:absolute;top:-4px;right:-6px;background:var(--fjord2);color:#fff;border-radius:10px;font-size:10px;padding:1px 5px;display:flex;gap:2px;align-items:center}
+.tool.big .ic{width:auto;padding:0 20px;background:var(--fjord2);color:#fff;font-size:15px;border-radius:23px}
+.tool:disabled{opacity:.45}
+
+/* ---------- home ---------- */
+#home .hero{position:relative;z-index:2;text-align:center;padding:calc(env(safe-area-inset-top) + 34px) 16px 0}
+#home h1{margin:0;font-size:42px;letter-spacing:.02em;color:var(--fjord);font-weight:900}
+#home h1 span{color:var(--berry)}
+#home .sub{color:var(--fjord2);font-weight:700;margin-top:4px}
+.homecard{position:relative;z-index:2;margin:18px 16px 0;background:rgba(255,255,255,.92);border-radius:22px;padding:16px;box-shadow:0 10px 30px rgba(29,53,87,.18)}
+.play{width:100%;padding:16px;border-radius:18px;background:linear-gradient(180deg,#2f7fd9,#1d5fb0);color:#fff;font-size:21px;font-weight:900;box-shadow:0 5px 0 #154a8a;}
+.play small{display:block;font-size:13px;font-weight:700;opacity:.85}
+.play:active{transform:translateY(3px);box-shadow:0 2px 0 #154a8a}
+.lv{display:grid;grid-template-columns:repeat(6,1fr);gap:7px;margin-top:14px}
+.lv button{aspect-ratio:1;border-radius:10px;background:var(--mist);color:var(--fjord);font-weight:900;font-size:15px}
+.lv button.done{background:#d9f0e2;color:var(--pine)}
+.lv button.cur{background:var(--fjord2);color:#fff;box-shadow:0 0 0 3px var(--act)}
+.lv button.lock{opacity:.4}
+.row{display:flex;gap:8px;margin-top:12px}
+.chip{flex:1;padding:10px;border-radius:14px;background:var(--mist);color:var(--fjord);font-weight:800;font-size:14px}
+.chip.on{background:var(--fjord2);color:#fff}
+.stats{display:flex;justify-content:space-around;margin-top:12px;color:var(--fjord);font-weight:800;font-size:13px;text-align:center}
+.stats b{display:block;font-size:20px}
+
+/* ---------- win ---------- */
+#win{background:radial-gradient(circle at 50% 30%,#3b7fd0,#1d3557 75%);color:#fff;align-items:center;justify-content:center}
+#win canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+#win h2{font-size:36px;margin:0 0 18px;font-weight:900;text-shadow:0 3px 0 rgba(0,0,0,.2);animation:winT .7s cubic-bezier(.2,1.5,.4,1)}
+@keyframes winT{from{transform:scale(.3);opacity:0}}
+.wcard{display:flex;gap:10px;align-items:center;z-index:2}
+.wcard .p{background:#fff;color:var(--fjord);border-radius:16px;padding:10px 18px;text-align:center;font-weight:800;min-width:110px;position:relative}
+.wcard .p b{display:block;font-size:30px}
+.wcard .p.win{box-shadow:0 0 0 4px var(--gold)}
+.wcard .p .tag{position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:var(--gold);color:#5a3e00;font-size:11px;padding:2px 8px;border-radius:8px;white-space:nowrap}
+.wcard .vsb{width:44px;height:44px;border-radius:50%;background:#2f7fd9;display:grid;place-items:center;font-weight:900;border:3px solid #fff}
+.reward{margin-top:18px;z-index:2;display:flex;align-items:center;gap:8px;font-weight:900;font-size:20px;background:rgba(255,255,255,.15);padding:8px 16px;border-radius:16px}
+.prog{width:78%;max-width:320px;margin-top:16px;z-index:2;background:rgba(255,255,255,.15);border-radius:14px;padding:10px 12px;font-weight:800;font-size:13px}
+.prog .bar{height:10px;border-radius:6px;background:rgba(255,255,255,.25);margin-top:6px;overflow:hidden}
+.prog .bar i{display:block;height:100%;background:linear-gradient(90deg,#7fe3c1,#f2b632);width:0;transition:width 1s .4s}
+#win .play{width:78%;max-width:320px;margin-top:22px;z-index:2;background:#fff;color:var(--fjord2);box-shadow:0 5px 0 #a9c3e0}
+#win .home{margin-top:12px;background:none;color:#fff;font-weight:800;z-index:2;opacity:.85}
+
+/* ---------- modal ---------- */
+.modal{position:fixed;inset:0;z-index:80;background:rgba(15,30,50,.55);display:none;align-items:center;justify-content:center}
+.modal.on{display:flex}
+.modal .box{background:#fff;border-radius:22px;padding:20px;width:86%;max-width:340px;text-align:center;animation:winT .35s cubic-bezier(.2,1.4,.4,1)}
+.modal h3{margin:0 0 10px;color:var(--fjord)}
+.modal .row button{flex:1}
+.toast{position:fixed;left:50%;bottom:150px;transform:translateX(-50%);background:var(--fjord);color:#fff;padding:8px 14px;border-radius:12px;font-weight:800;z-index:90;opacity:0;transition:opacity .25s}
+.toast.on{opacity:1}
 </style>
 </head>
 <body>
+<template id="skyT">
+  <div class="aur"></div>
+  <svg viewBox="0 0 400 260" preserveAspectRatio="xMidYMin slice" aria-hidden="true">
+    <path d="M0 150 L40 112 L70 132 L118 78 L150 108 L190 64 L232 112 L262 92 L300 128 L340 86 L400 140 L400 260 L0 260Z" fill="#a9cbe0"/>
+    <path d="M118 78 L132 92 L124 92 L140 104 L104 104 L112 92 L104 92Z M190 64 L206 80 L196 80 L214 94 L168 94 L184 80 L176 80Z M340 86 L354 100 L346 100 L360 112 L322 112 L332 100 L326 100Z" fill="#fff" opacity=".9"/>
+    <path d="M0 176 L50 140 L92 160 L142 122 L196 158 L250 130 L300 160 L352 132 L400 162 L400 260 L0 260Z" fill="#7fa9c6"/>
+    <g fill="#2f6b4f" opacity=".85">
+      <path d="M18 182 l7 -18 l7 18z M30 186 l8 -22 l8 22z M352 178 l7 -18 l7 18z M366 184 l8 -22 l8 22z M382 180 l6 -16 l6 16z"/>
+    </g>
+    <g transform="translate(300 146)" fill="#5a3e1b">
+      <path d="M10 30 L10 14 L16 8 L22 14 L22 30Z"/><path d="M6 16 L16 4 L26 16Z" fill="#7a2a1f"/><path d="M12 4 L16 -6 L20 4Z" fill="#7a2a1f"/>
+      <rect x="14" y="22" width="4" height="8" fill="#f6e7c8"/>
+    </g>
+    <path d="M0 190 Q100 176 200 188 T400 186 L400 260 L0 260Z" fill="#dcebf3"/>
+  </svg>
+</template>
 
-<div id="s-home" class="screen active"><div class="wrap">
-  <div class="home-head">
-    <div class="logo">NORD<span>KRYSS</span></div>
-    <div class="tagline" id="t-tagline"></div>
-    <div class="langs">
-      <button class="lang" id="lang-no" onclick="setLang('no')">🇳🇴 Norsk</button>
-      <button class="lang" id="lang-ru" onclick="setLang('ru')">🇷🇺 Русский</button>
-    </div>
+<section id="home" class="screen">
+  <div class="sky"><img id="heroimg" src="img/hero.webp" alt="" onerror="this.remove()" style="position:absolute;left:0;right:0;bottom:0;width:100%;height:62%;object-fit:cover;opacity:.95;-webkit-mask-image:linear-gradient(180deg,transparent,#000 30%);mask-image:linear-gradient(180deg,transparent,#000 30%)"></div>
+  <div class="hero">
+    <h1>Nord<span>kryss</span></h1>
+    <div class="sub" id="h-sub"></div>
   </div>
-  <div class="statrow">
-    <div class="stat"><b id="st-solved">0</b><i id="t-solved"></i></div>
-    <div class="stat"><b id="st-streak">0 🔥</b><i id="t-streak"></i></div>
-    <div class="stat"><b id="st-best">–</b><i id="t-best"></i></div>
+  <div class="homecard">
+    <div style="display:flex;justify-content:flex-end;margin:-4px 0 10px"><div class="coins"><span class="coin">✦</span><span class="coinsN" id="h-coins">0</span></div></div>
+    <button class="play" id="h-play"></button>
+    <div class="lv" id="h-lv"></div>
+    <div class="stats"><div><b id="st-solved">0</b><span id="st-solved-l"></span></div><div><b id="st-wins">0</b><span id="st-wins-l"></span></div><div><b id="st-best">0</b><span id="st-best-l"></span></div></div>
+    <div class="row"><button class="chip" id="h-lang-ru">🇷🇺 Русский</button><button class="chip" id="h-lang-no">🇳🇴 Norsk</button></div>
+    <div class="row"><button class="chip" id="h-snd"></button></div>
   </div>
-  <div class="daily" onclick="openDaily()">
-    <div>
-      <div class="dl" id="t-daily"></div>
-      <div class="dt" id="daily-date">–</div>
-      <div class="dd" id="daily-state"></div>
-    </div>
-    <div class="go">→</div>
-  </div>
-  <div class="sect" id="t-sect"></div>
-  <div class="levels" id="levels"></div>
-</div></div>
+</section>
 
-<div id="s-game" class="screen"><div class="wrap">
-  <div class="gtop">
-    <button class="back" onclick="goHome()" id="t-home">‹</button>
-    <div class="gtitle" id="gtitle">Nivå 1</div>
-    <div class="gtime" id="gtime">0:00</div>
+<section id="game" class="screen">
+  <div class="sky"></div>
+  <div class="top">
+    <button class="ibtn" id="g-back" aria-label="back">‹</button>
+    <div class="coins"><span class="coin">✦</span><span class="coinsN">0</span><span class="plus">+</span></div>
+    <div style="width:38px"></div>
   </div>
-  <div class="board" id="board"></div>
-  <div class="cluebar">
-    <button class="arr" onclick="stepClue(-1)">‹</button>
-    <div class="txt" id="clue" onclick="toggleDir()"></div>
-    <button class="arr" onclick="stepClue(1)">›</button>
+  <div class="vs">
+    <div class="pl me"><span id="g-me"></span><span class="sc"><span id="sc-me">0</span></span></div>
+    <span class="x">vs</span>
+    <div class="pl op"><span class="sc"><span id="sc-op">0</span></span><span id="g-op"></span></div>
   </div>
+  <div class="boardwrap"><div class="board" id="board"></div></div>
+  <div class="tray" id="tray"></div>
   <div class="tools">
-    <button class="tool" onclick="hint()" id="t-hint"></button>
-    <button class="tool" onclick="checkAll()" id="t-check"></button>
-    <button class="tool" onclick="clearWrong()" id="t-clear"></button>
+    <button class="tool" id="t-shuffle"><span class="ic">🔄</span><span id="t-sh"></span></button>
+    <button class="tool" id="t-word"><span class="ic">🔤</span><span class="pr">✦100</span><span id="t-wd"></span></button>
+    <button class="tool" id="t-hint"><span class="ic">💡</span><span class="pr">✦40</span><span id="t-hn"></span></button>
   </div>
-  <div class="kb" id="kb"></div>
-</div></div>
+</section>
 
-<div id="win">
-  <div class="wincard">
-    <div class="emoji">🎉</div>
-    <h2 id="t-win"></h2>
-    <p id="t-winsub"></p>
-    <div class="wtime" id="wtime">0:00</div>
-    <div class="jstreak-note" id="wstreak"></div>
-    <button class="btn" onclick="closeWin()" id="t-cont"></button>
+<section id="win" class="screen">
+  <canvas id="cf"></canvas>
+  <h2 id="w-title"></h2>
+  <div class="wcard">
+    <div class="p" id="w-mep"><span class="tag" id="w-tag"></span><span id="w-me-l"></span><b id="w-me">0</b></div>
+    <div class="vsb">VS</div>
+    <div class="p" id="w-opp"><span id="w-op-l"></span><b id="w-op">0</b></div>
   </div>
-</div>
+  <div class="reward"><span class="coin">✦</span><span id="w-reward"></span></div>
+  <div class="prog"><span id="w-prog-l"></span> 🎁<div class="bar"><i id="w-bar"></i></div></div>
+  <button class="play" id="w-next"></button>
+  <button class="home" id="w-home"></button>
+</section>
 
-<script>
-const DATA = { no: [{"size": 5, "grid": ["HUS#T", "Y#V#E", "TRAPP", "T#R#P", "E#TRE"], "clues": {"A": [{"n": 1, "clue": "Bolig med tak og vegger", "len": 3}, {"n": 4, "clue": "Går mellom etasjer", "len": 5}, {"n": 5, "clue": "Vokser i skogen", "len": 3}], "D": [{"n": 1, "clue": "Nordmenns fristed på fjellet", "len": 5}, {"n": 2, "clue": "Nattens farge", "len": 5}, {"n": 3, "clue": "Varmer på sofaen", "len": 5}]}}, {"size": 5, "grid": ["#L#P#", "REKE#", "#FAR#", "#SILD", "#E#E#"], "clues": {"A": [{"n": 3, "clue": "Rosa skalldyr", "len": 4}, {"n": 5, "clue": "Mannlig forelder", "len": 3}, {"n": 6, "clue": "Liten stimfisk", "len": 4}], "D": [{"n": 1, "clue": "Myk tradisjonsbakst", "len": 5}, {"n": 2, "clue": "Skatt fra østers", "len": 5}, {"n": 4, "clue": "Der båtene legger til", "len": 3}]}}, {"size": 5, "grid": ["TAK##", "I#O#M", "MYNTE", "E#G#L", "##EIK"], "clues": {"A": [{"n": 1, "clue": "Øverst på huset", "len": 3}, {"n": 4, "clue": "Frisk grønn krydderplante", "len": 5}, {"n": 5, "clue": "Sterkt løvtre", "len": 3}], "D": [{"n": 1, "clue": "Seksti minutter", "len": 4}, {"n": 2, "clue": "Landets overhode", "len": 5}, {"n": 3, "clue": "Hvit drikk fra kua", "len": 4}]}}, {"size": 5, "grid": ["RIS##", "A#P#P", "SKUTE", "K#R#N", "##VIN"], "clues": {"A": [{"n": 1, "clue": "Korn til grøt", "len": 3}, {"n": 4, "clue": "Gammelt seilskip", "len": 5}, {"n": 5, "clue": "Drikk laget av druer", "len": 3}], "D": [{"n": 1, "clue": "Motsatt av treg", "len": 4}, {"n": 2, "clue": "Liten byfugl", "len": 5}, {"n": 3, "clue": "Skriver med blekk", "len": 4}]}}, {"size": 5, "grid": ["K#TAK", "R#R#A", "EKORN", "P#L#E", "SOL#L"], "clues": {"A": [{"n": 2, "clue": "Øverst på huset", "len": 3}, {"n": 4, "clue": "Samler nøtter i treet", "len": 5}, {"n": 5, "clue": "Stjernen som varmer jorden", "len": 3}], "D": [{"n": 1, "clue": "Har klør i ferskvann", "len": 5}, {"n": 2, "clue": "Bor under broen i eventyr", "len": 5}, {"n": 3, "clue": "Krydder på grøten", "len": 5}]}}, {"size": 5, "grid": ["SIL#S", "E#ALV", "T#R#A", "ELV#R", "R#ERT"], "clues": {"A": [{"n": 1, "clue": "Skiller væske fra fast", "len": 3}, {"n": 4, "clue": "Lite eventyrvesen", "len": 3}, {"n": 5, "clue": "Rennende vann", "len": 3}, {"n": 6, "clue": "Liten grønn belgfrukt", "len": 3}], "D": [{"n": 1, "clue": "Fjellgård for dyr om sommeren", "len": 5}, {"n": 2, "clue": "Blir til sommerfugl", "len": 5}, {"n": 3, "clue": "Nattens farge", "len": 5}]}}, {"size": 5, "grid": ["##F#A", "#BRIS", "FROSK", "LESE#", "Y#T##"], "clues": {"A": [{"n": 3, "clue": "Lett vind", "len": 4}, {"n": 5, "clue": "Hopper og kvekker", "len": 5}, {"n": 6, "clue": "Gjøre med en bok", "len": 4}], "D": [{"n": 1, "clue": "Minusgrader", "len": 5}, {"n": 2, "clue": "Løvtre, eller rest etter bål", "len": 3}, {"n": 3, "clue": "Is som beveger seg sakte", "len": 3}, {"n": 4, "clue": "Bli til is", "len": 3}, {"n": 5, "clue": "Reiser i luften", "len": 3}]}}, {"size": 5, "grid": ["M#SKY", "U#T##", "SKOLE", "##R#L", "EIM#G"], "clues": {"A": [{"n": 2, "clue": "Hvit på himmelen", "len": 3}, {"n": 3, "clue": "Der barna lærer", "len": 5}, {"n": 5, "clue": "Svak lukt eller damp", "len": 3}], "D": [{"n": 1, "clue": "Liten gnager", "len": 3}, {"n": 2, "clue": "Kraftig uvær", "len": 5}, {"n": 4, "clue": "Skogens konge", "len": 3}]}}, {"size": 5, "grid": ["ROSA#", "A#T#S", "SLOTT", "K#R#U", "#SKJE"], "clues": {"A": [{"n": 1, "clue": "Lys rødfarge", "len": 4}, {"n": 4, "clue": "Kongens bolig", "len": 5}, {"n": 5, "clue": "Brukes til suppe", "len": 4}], "D": [{"n": 1, "clue": "Motsatt av treg", "len": 4}, {"n": 2, "clue": "Kommer med barn i eventyr", "len": 5}, {"n": 3, "clue": "Rom med sofa", "len": 4}]}}, {"size": 5, "grid": ["M#SEL", "OSP#Æ", "L#R#R", "T#ÅRE", "EIK#R"], "clues": {"A": [{"n": 2, "clue": "Svømmer med luffer", "len": 3}, {"n": 4, "clue": "Tre med skjelvende blader", "len": 3}, {"n": 5, "clue": "Brukes til å ro", "len": 3}, {"n": 6, "clue": "Sterkt løvtre", "len": 3}], "D": [{"n": 1, "clue": "Gyllent myrbær", "len": 5}, {"n": 2, "clue": "Norsk er et", "len": 5}, {"n": 3, "clue": "Underviser i skolen", "len": 5}]}}, {"size": 5, "grid": ["VEST#", "E##O#", "DRAGE", "#U##R", "#GEIT"], "clues": {"A": [{"n": 1, "clue": "Der solen går ned", "len": 4}, {"n": 3, "clue": "Flyr i snor i vinden", "len": 5}, {"n": 6, "clue": "Klatrer i fjellet og mekrer", "len": 4}], "D": [{"n": 1, "clue": "Brensel til peisen", "len": 3}, {"n": 2, "clue": "Kjører på skinner", "len": 3}, {"n": 4, "clue": "Mørkt korn", "len": 3}, {"n": 5, "clue": "Liten grønn belgfrukt", "len": 3}]}}, {"size": 5, "grid": ["OSP#S", "##OST", "R#T#I", "ØRE##", "D#TID"], "clues": {"A": [{"n": 1, "clue": "Tre med skjelvende blader", "len": 3}, {"n": 4, "clue": "God på brødskiva", "len": 3}, {"n": 6, "clue": "Vi hører med det", "len": 3}, {"n": 7, "clue": "Går alltid fremover", "len": 3}], "D": [{"n": 2, "clue": "Nordmenns grunnmat", "len": 5}, {"n": 3, "clue": "Smal vei i skogen", "len": 3}, {"n": 5, "clue": "Fargen på jordbær", "len": 3}]}}, {"size": 5, "grid": ["GRØNN", "Å##Å#", "SKOLE", "#Å##G", "FLAGG"], "clues": {"A": [{"n": 1, "clue": "Gressets farge", "len": 5}, {"n": 3, "clue": "Der barna lærer", "len": 5}, {"n": 6, "clue": "Rødt, hvitt og blått", "len": 5}], "D": [{"n": 1, "clue": "Stor fugl som snadrer", "len": 3}, {"n": 2, "clue": "Brukes til å sy", "len": 3}, {"n": 4, "clue": "Grønnsak i høstgryta", "len": 3}, {"n": 5, "clue": "Høna legger det", "len": 3}]}}, {"size": 5, "grid": ["HAVRE", "#L##R", "SVART", "I##E#", "LARVE"], "clues": {"A": [{"n": 1, "clue": "Korn til grøt", "len": 5}, {"n": 4, "clue": "Nattens farge", "len": 5}, {"n": 6, "clue": "Blir til sommerfugl", "len": 5}], "D": [{"n": 2, "clue": "Lite eventyrvesen", "len": 3}, {"n": 3, "clue": "Liten grønn belgfrukt", "len": 3}, {"n": 4, "clue": "Skiller væske fra fast", "len": 3}, {"n": 5, "clue": "Lur skogsdyr med rød pels", "len": 3}]}}], ru: [{"size": 5, "grid": ["ЛУК#Р", "О#О#Ы", "ДИВАН", "К#Е#О", "А#РАК"], "clues": {"A": [{"n": 1, "clue": "Овощ, доводящий до слёз", "len": 3}, {"n": 4, "clue": "Мягкий для отдыха", "len": 5}, {"n": 5, "clue": "Пятится назад с клешнями", "len": 3}], "D": [{"n": 1, "clue": "Плывёт на вёслах", "len": 5}, {"n": 2, "clue": "Лежит на полу", "len": 5}, {"n": 3, "clue": "Там торгуют с прилавков", "len": 5}]}}, {"size": 5, "grid": ["#Л#З#", "РОСА#", "#ДЫМ#", "#КРОТ", "#А#К#"], "clues": {"A": [{"n": 3, "clue": "Утренние капли на траве", "len": 4}, {"n": 5, "clue": "Идёт из трубы", "len": 3}, {"n": 6, "clue": "Слепой землекоп", "len": 4}], "D": [{"n": 1, "clue": "Плывёт на вёслах", "len": 5}, {"n": 2, "clue": "Дворец с башнями, или на двери", "len": 5}, {"n": 4, "clue": "С дырками на бутерброде", "len": 3}]}}, {"size": 5, "grid": ["ПЕС##", "У#А#П", "ТОПОР", "Ь#О#У", "##ГОД"], "clues": {"A": [{"n": 1, "clue": "Верный друг человека", "len": 3}, {"n": 4, "clue": "Рубит дрова", "len": 5}, {"n": 5, "clue": "Двенадцать месяцев", "len": 3}], "D": [{"n": 1, "clue": "Дорога к цели", "len": 4}, {"n": 2, "clue": "Обувь на зиму", "len": 5}, {"n": 3, "clue": "Маленький водоём", "len": 4}]}}, {"size": 5, "grid": ["#СТУЛ", "ПАР##", "#ДОМ#", "##ПЕС", "ГРАЧ#"], "clues": {"A": [{"n": 1, "clue": "На нём сидят", "len": 4}, {"n": 3, "clue": "Идёт от кипятка", "len": 3}, {"n": 4, "clue": "Жилище с крышей и стенами", "len": 3}, {"n": 6, "clue": "Верный друг человека", "len": 3}, {"n": 7, "clue": "Чёрная весенняя птица", "len": 4}], "D": [{"n": 1, "clue": "Там растут яблони", "len": 3}, {"n": 2, "clue": "Узкая дорожка", "len": 5}, {"n": 5, "clue": "Оружие рыцаря", "len": 3}]}}, {"size": 5, "grid": ["МАК##", "А#А#П", "МЕТРО", "А#О#Э", "##КИТ"], "clues": {"A": [{"n": 1, "clue": "Алый цветок с зёрнышками", "len": 3}, {"n": 4, "clue": "Поезд под землёй", "len": 5}, {"n": 5, "clue": "Морской гигант", "len": 3}], "D": [{"n": 1, "clue": "Самый родной человек", "len": 4}, {"n": 2, "clue": "Ледяная площадка", "len": 5}, {"n": 3, "clue": "Пишет стихи", "len": 4}]}}, {"size": 5, "grid": ["М#ШАГ", "Е#А#О", "ТОПОР", "Р#К#О", "ОСА#Х"], "clues": {"A": [{"n": 2, "clue": "Одно движение ноги", "len": 3}, {"n": 4, "clue": "Рубит дрова", "len": 5}, {"n": 5, "clue": "Полосатая и сердитая", "len": 3}], "D": [{"n": 1, "clue": "Поезд под землёй", "len": 5}, {"n": 2, "clue": "Греет голову", "len": 5}, {"n": 3, "clue": "Круглый в стручке", "len": 5}]}}, {"size": 5, "grid": ["СОВА#", "О#Е##", "КАТОК", "##Е#О", "#БРАТ"], "clues": {"A": [{"n": 1, "clue": "Ночная мудрая птица", "len": 4}, {"n": 3, "clue": "Ледяная площадка", "len": 5}, {"n": 5, "clue": "Сын тех же родителей", "len": 4}], "D": [{"n": 1, "clue": "Выжат из фруктов", "len": 3}, {"n": 2, "clue": "Гонит облака", "len": 5}, {"n": 4, "clue": "Мурлычет на диване", "len": 3}]}}, {"size": 5, "grid": ["МОСТ#", "И#А##", "РЫНОК", "##К#И", "#АИСТ"], "clues": {"A": [{"n": 1, "clue": "Перекинут через реку", "len": 4}, {"n": 3, "clue": "Там торгуют с прилавков", "len": 5}, {"n": 5, "clue": "Приносит детей, по легенде", "len": 4}], "D": [{"n": 1, "clue": "Вся планета, или не война", "len": 3}, {"n": 2, "clue": "Катят с горки зимой", "len": 5}, {"n": 4, "clue": "Морской гигант", "len": 3}]}}, {"size": 5, "grid": ["ДЕД#Ч", "##ИВА", "С#В#Й", "ОСА##", "М#НОС"], "clues": {"A": [{"n": 1, "clue": "Папа папы", "len": 3}, {"n": 4, "clue": "Плакучее дерево у воды", "len": 3}, {"n": 6, "clue": "Полосатая и сердитая", "len": 3}, {"n": 7, "clue": "Посередине лица", "len": 3}], "D": [{"n": 2, "clue": "Мягкий для отдыха", "len": 5}, {"n": 3, "clue": "Горячий напиток с заваркой", "len": 3}, {"n": 5, "clue": "Усатая речная рыба", "len": 3}]}}, {"size": 5, "grid": ["#СТОЛ", "##О#У", "САПОГ", "У#О##", "ПАРК#"], "clues": {"A": [{"n": 1, "clue": "За ним обедают", "len": 4}, {"n": 4, "clue": "Обувь на зиму", "len": 5}, {"n": 5, "clue": "Зелёный уголок города", "len": 4}], "D": [{"n": 2, "clue": "Рубит дрова", "len": 5}, {"n": 3, "clue": "Поле с травой и цветами", "len": 3}, {"n": 4, "clue": "Первое блюдо", "len": 3}]}}, {"size": 5, "grid": ["МАЯК#", "##ГОД", "#РОТ#", "САД##", "#КАША"], "clues": {"A": [{"n": 1, "clue": "Светит кораблям в ночи", "len": 4}, {"n": 4, "clue": "Двенадцать месяцев", "len": 3}, {"n": 5, "clue": "Им говорят и едят", "len": 3}, {"n": 6, "clue": "Там растут яблони", "len": 3}, {"n": 7, "clue": "Утренняя еда из крупы", "len": 4}], "D": [{"n": 2, "clue": "Малина или черника", "len": 5}, {"n": 3, "clue": "Мурлычет на диване", "len": 3}, {"n": 5, "clue": "Пятится назад с клешнями", "len": 3}]}}, {"size": 5, "grid": ["СЛОВО", "#У##С", "СКАЛА", "У##У#", "КНИГА"], "clues": {"A": [{"n": 1, "clue": "Состоит из букв", "len": 5}, {"n": 4, "clue": "Отвесный камень", "len": 5}, {"n": 6, "clue": "У неё много страниц", "len": 5}], "D": [{"n": 2, "clue": "Овощ, доводящий до слёз", "len": 3}, {"n": 3, "clue": "Полосатая и сердитая", "len": 3}, {"n": 4, "clue": "Ветка на стволе", "len": 3}, {"n": 5, "clue": "Поле с травой и цветами", "len": 3}]}}, {"size": 5, "grid": ["ЧАШКА", "А#К##", "СЛОВО", "##Л#С", "ТРАВА"], "clues": {"A": [{"n": 1, "clue": "Для чая", "len": 5}, {"n": 3, "clue": "Состоит из букв", "len": 5}, {"n": 5, "clue": "Зелёная под ногами", "len": 5}], "D": [{"n": 1, "clue": "Шестьдесят минут", "len": 3}, {"n": 2, "clue": "Там учатся дети", "len": 5}, {"n": 4, "clue": "Полосатая и сердитая", "len": 3}]}}, {"size": 5, "grid": ["БЕГ#М", "##ОСА", "Ж#Р#К", "УХО##", "К#ДУБ"], "clues": {"A": [{"n": 1, "clue": "Быстрее ходьбы", "len": 3}, {"n": 4, "clue": "Полосатая и сердитая", "len": 3}, {"n": 6, "clue": "Орган слуха", "len": 3}, {"n": 7, "clue": "Могучее дерево с желудями", "len": 3}], "D": [{"n": 2, "clue": "Большой населённый пункт", "len": 5}, {"n": 3, "clue": "Алый цветок с зёрнышками", "len": 3}, {"n": 5, "clue": "Гудит в майский вечер", "len": 3}]}}] };
-/* Nordkryss prototype logic (no/ru). */
+<div class="toast" id="toast"></div>
+<script>document.querySelectorAll('.sky').forEach(s=>s.appendChild(document.getElementById('skyT').content.cloneNode(true)));</script>
+<script>window.SKAN_DATA={"ru":{"puzzles":[{"id":1,"seed":7045,"W":8,"H":10,"grid":["########","#соломка","#абак#л#","#подобие","#оратор#","#гон#г#а","##н#ролл","#май#мим","#а#о#оса","#гид#лаз"],"words":[{"word":"сапог","clue":[0,1],"dir":"d","start":[1,1],"img":"boot","text":""},{"word":"оборона","clue":[0,2],"dir":"d","start":[1,2],"text":"защита"},{"word":"ладан","clue":[0,3],"dir":"d","start":[1,3],"text":"церковная смола"},{"word":"окот","clue":[0,4],"dir":"d","start":[1,4],"text":"рождение ягнят"},{"word":"клир","clue":[0,6],"dir":"d","start":[1,6],"text":"духовенство"},{"word":"соломка","clue":[1,0],"dir":"a","start":[1,1],"text":"трубочка"},{"word":"абак","clue":[2,0],"dir":"a","start":[2,1],"text":"счетная доска"},{"word":"богомол","clue":[2,5],"dir":"d","start":[3,5],"text":"хищное насекомое"},{"word":"подобие","clue":[3,0],"dir":"a","start":[3,1],"text":"сходство"},{"word":"оратор","clue":[4,0],"dir":"a","start":[4,1],"text":"выступающий"},{"word":"алмаз","clue":[4,7],"dir":"d","start":[5,7],"text":"драгоценный камень"},{"word":"гон","clue":[5,0],"dir":"a","start":[5,1],"text":"охота с собаками"},{"word":"лиса","clue":[5,6],"dir":"d","start":[6,6],"img":"fox","text":""},{"word":"маг","clue":[6,1],"dir":"d","start":[7,1],"text":"волшебник"},{"word":"ролл","clue":[6,3],"dir":"a","start":[6,4],"text":"суши-рулет"},{"word":"йод","clue":[6,3],"dir":"d","start":[7,3],"text":"антисептик"},{"word":"май","clue":[7,0],"dir":"a","start":[7,1],"text":"весенний месяц"},{"word":"мим","clue":[7,4],"dir":"a","start":[7,5],"text":"актер пантомимы"},{"word":"оса","clue":[8,4],"dir":"a","start":[8,5],"text":"полосатое насекомое"},{"word":"гид","clue":[9,0],"dir":"a","start":[9,1],"text":"экскурсовод"},{"word":"лаз","clue":[9,4],"dir":"a","start":[9,5],"text":"узкий проход"}]},{"id":2,"seed":7057,"W":8,"H":10,"grid":["########","#клака#э","#лай#нюх","#акр#т#о","#стая#т#","#сон#кеб","##з#хала","#лан#рог","#о#орт#е","#тис#аут"],"words":[{"word":"класс","clue":[0,1],"dir":"d","start":[1,1],"text":"разряд"},{"word":"лактоза","clue":[0,2],"dir":"d","start":[1,2],"text":"молочный сахар"},{"word":"айран","clue":[0,3],"dir":"d","start":[1,3],"text":"кисломолочный напиток"},{"word":"ант","clue":[0,5],"dir":"d","start":[1,5],"text":"фасадная стена храма"},{"word":"эхо","clue":[0,7],"dir":"d","start":[1,7],"text":"отголосок"},{"word":"клака","clue":[1,0],"dir":"a","start":[1,1],"text":"наемные хлопальщики"},{"word":"лай","clue":[2,0],"dir":"a","start":[2,1],"text":"собачий голос"},{"word":"нюх","clue":[2,4],"dir":"a","start":[2,5],"text":"обоняние"},{"word":"акр","clue":[3,0],"dir":"a","start":[3,1],"text":"мера площади"},{"word":"тело","clue":[3,6],"dir":"d","start":[4,6],"text":"организм"},{"word":"стая","clue":[4,0],"dir":"a","start":[4,1],"text":"группа птиц"},{"word":"карта","clue":[4,5],"dir":"d","start":[5,5],"img":"map","text":""},{"word":"багет","clue":[4,7],"dir":"d","start":[5,7],"text":"длинный батон"},{"word":"сон","clue":[5,0],"dir":"a","start":[5,1],"text":"сновидение"},{"word":"кеб","clue":[5,4],"dir":"a","start":[5,5],"text":"английская пролетка"},{"word":"лот","clue":[6,1],"dir":"d","start":[7,1],"text":"товар на торгах"},{"word":"хала","clue":[6,3],"dir":"a","start":[6,4],"text":"плетеная булка"},{"word":"нос","clue":[6,3],"dir":"d","start":[7,3],"img":"nose","text":""},{"word":"лан","clue":[7,0],"dir":"a","start":[7,1],"text":"пахотное поле"},{"word":"рог","clue":[7,4],"dir":"a","start":[7,5],"text":"у быка"},{"word":"орт","clue":[8,2],"dir":"a","start":[8,3],"text":"единичный вектор"},{"word":"тис","clue":[9,0],"dir":"a","start":[9,1],"text":"хвойное дерево"},{"word":"аут","clue":[9,4],"dir":"a","start":[9,5],"text":"мяч за линией"}]},{"id":3,"seed":7090,"W":8,"H":10,"grid":["########","#огурчик","#пай#еда","#луг#хит","#обух#ш#","#тир#р#б","##ц#сова","#хан#бес","#а#овод#","#муж#таз"],"words":[{"word":"оплот","clue":[0,1],"dir":"d","start":[1,1],"text":"твердыня"},{"word":"гаубица","clue":[0,2],"dir":"d","start":[1,2],"text":"орудие"},{"word":"уйгур","clue":[0,3],"dir":"d","start":[1,3],"text":"тюркский народ"},{"word":"чех","clue":[0,5],"dir":"d","start":[1,5],"text":"житель Праги"},{"word":"идиш","clue":[0,6],"dir":"d","start":[1,6],"text":"еврейский язык"},{"word":"кат","clue":[0,7],"dir":"d","start":[1,7],"text":"палач"},{"word":"огурчик","clue":[1,0],"dir":"a","start":[1,1],"text":"овощ"},{"word":"пай","clue":[2,0],"dir":"a","start":[2,1],"text":"доля"},{"word":"еда","clue":[2,4],"dir":"a","start":[2,5],"text":"пища"},{"word":"луг","clue":[3,0],"dir":"a","start":[3,1],"text":"поляна"},{"word":"хит","clue":[3,4],"dir":"a","start":[3,5],"text":"шлягер"},{"word":"обух","clue":[4,0],"dir":"a","start":[4,1],"text":"тупая сторона топора"},{"word":"робот","clue":[4,5],"dir":"d","start":[5,5],"text":"андроид"},{"word":"бас","clue":[4,7],"dir":"d","start":[5,7],"text":"низкий голос"},{"word":"тир","clue":[5,0],"dir":"a","start":[5,1],"text":"стрельбище"},{"word":"веда","clue":[5,6],"dir":"d","start":[6,6],"text":"индийский священный текст"},{"word":"хам","clue":[6,1],"dir":"d","start":[7,1],"text":"грубиян"},{"word":"сова","clue":[6,3],"dir":"a","start":[6,4],"img":"owl","text":""},{"word":"нож","clue":[6,3],"dir":"d","start":[7,3],"img":"knife","text":""},{"word":"хан","clue":[7,0],"dir":"a","start":[7,1],"text":"восточный правитель"},{"word":"бес","clue":[7,4],"dir":"a","start":[7,5],"text":"черт"},{"word":"овод","clue":[8,2],"dir":"a","start":[8,3],"text":"слепень"},{"word":"муж","clue":[9,0],"dir":"a","start":[9,1],"text":"супруг"},{"word":"таз","clue":[9,4],"dir":"a","start":[9,5],"text":"широкая миска"}]},{"id":4,"seed":7281,"W":8,"H":10,"grid":["########","#аппарат","#враг#р#","#товарищ","#осот#я#","#код#щ#п","#а#озеро","#рок#гик","##с#роза","#бай#лаз"],"words":[{"word":"автокар","clue":[0,1],"dir":"d","start":[1,1],"text":"грузовая тележка"},{"word":"просо","clue":[0,2],"dir":"d","start":[1,2],"text":"крупа для пшена"},{"word":"паводок","clue":[0,3],"dir":"d","start":[1,3],"text":"половодье"},{"word":"агат","clue":[0,4],"dir":"d","start":[1,4],"text":"полудрагоценный камень"},{"word":"ария","clue":[0,6],"dir":"d","start":[1,6],"text":"песня в опере"},{"word":"аппарат","clue":[1,0],"dir":"a","start":[1,1],"text":"прибор"},{"word":"враг","clue":[2,0],"dir":"a","start":[2,1],"text":"неприятель"},{"word":"товарищ","clue":[3,0],"dir":"a","start":[3,1],"text":"друг"},{"word":"осот","clue":[4,0],"dir":"a","start":[4,1],"text":"сорняк"},{"word":"щегол","clue":[4,5],"dir":"d","start":[5,5],"text":"певчая птица"},{"word":"показ","clue":[4,7],"dir":"d","start":[5,7],"text":"демонстрация"},{"word":"код","clue":[5,0],"dir":"a","start":[5,1],"text":"шифр"},{"word":"риза","clue":[5,6],"dir":"d","start":[6,6],"text":"облачение священника"},{"word":"озеро","clue":[6,2],"dir":"a","start":[6,3],"img":"lake","text":""},{"word":"оса","clue":[6,2],"dir":"d","start":[7,2],"text":"полосатое насекомое"},{"word":"рок","clue":[7,0],"dir":"a","start":[7,1],"text":"судьба"},{"word":"гик","clue":[7,4],"dir":"a","start":[7,5],"text":"рей у паруса"},{"word":"роза","clue":[8,3],"dir":"a","start":[8,4],"img":"rose","text":""},{"word":"бай","clue":[9,0],"dir":"a","start":[9,1],"text":"богач"},{"word":"лаз","clue":[9,4],"dir":"a","start":[9,5],"text":"узкий проход"}]}]},"no":{"puzzles":[{"id":1,"seed":36,"W":8,"H":10,"grid":["########","#albue#å","#ror#syn","#sky#s#d","#ekte#k#","#nei#kry","#a#nivå#","#lag#akt","##r#grei","#dra#tre"],"words":[{"word":"arsenal","clue":[0,1],"dir":"d","start":[1,1],"text":"våpenlager"},{"word":"lokke","clue":[0,2],"dir":"d","start":[1,2],"text":"friste"},{"word":"bryting","clue":[0,3],"dir":"d","start":[1,3],"text":"kampsport"},{"word":"ess","clue":[0,5],"dir":"d","start":[1,5],"text":"toppkort"},{"word":"ånd","clue":[0,7],"dir":"d","start":[1,7],"text":"sjel"},{"word":"albue","clue":[1,0],"dir":"a","start":[1,1],"text":"armledd"},{"word":"ror","clue":[2,0],"dir":"a","start":[2,1],"text":"styreinnretning"},{"word":"syn","clue":[2,4],"dir":"a","start":[2,5],"text":"sans"},{"word":"sky","clue":[3,0],"dir":"a","start":[3,1],"img":"cloud","text":""},{"word":"kråker","clue":[3,6],"dir":"d","start":[4,6],"text":"svarte fugler"},{"word":"ekte","clue":[4,0],"dir":"a","start":[4,1],"text":"genuin"},{"word":"kvart","clue":[4,5],"dir":"d","start":[5,5],"text":"fjerdedel"},{"word":"nei","clue":[5,0],"dir":"a","start":[5,1],"text":"ikke ja"},{"word":"kry","clue":[5,4],"dir":"a","start":[5,5],"text":"stolt"},{"word":"nivå","clue":[6,2],"dir":"a","start":[6,3],"text":"plan"},{"word":"arr","clue":[6,2],"dir":"d","start":[7,2],"text":"merke etter sår"},{"word":"tie","clue":[6,7],"dir":"d","start":[7,7],"text":"være stille"},{"word":"lag","clue":[7,0],"dir":"a","start":[7,1],"text":"sjikt"},{"word":"akt","clue":[7,4],"dir":"a","start":[7,5],"text":"del av skuespill"},{"word":"grei","clue":[8,3],"dir":"a","start":[8,4],"text":"snill"},{"word":"dra","clue":[9,0],"dir":"a","start":[9,1],"text":"reise"},{"word":"tre","clue":[9,4],"dir":"a","start":[9,5],"img":"tree","text":""}]},{"id":2,"seed":240,"W":8,"H":10,"grid":["########","#adlyd#v","#vri#øke","#dag#r#g","#emne#d#","#kai#hel","#k#niese","#elg#vid","##e#angi","#ris#eng"],"words":[{"word":"avdekke","clue":[0,1],"dir":"d","start":[1,1],"text":"avsløre"},{"word":"drama","clue":[0,2],"dir":"d","start":[1,2],"text":"skuespill"},{"word":"ligning","clue":[0,3],"dir":"d","start":[1,3],"text":"likning"},{"word":"dør","clue":[0,5],"dir":"d","start":[1,5],"img":"door","text":""},{"word":"veg","clue":[0,7],"dir":"d","start":[1,7],"text":"vei"},{"word":"adlyd","clue":[1,0],"dir":"a","start":[1,1],"text":"lydighet"},{"word":"vri","clue":[2,0],"dir":"a","start":[2,1],"text":"sno"},{"word":"øke","clue":[2,4],"dir":"a","start":[2,5],"text":"vokse"},{"word":"dag","clue":[3,0],"dir":"a","start":[3,1],"text":"døgnets lyse del"},{"word":"design","clue":[3,6],"dir":"d","start":[4,6],"text":"formgivning"},{"word":"emne","clue":[4,0],"dir":"a","start":[4,1],"text":"tema"},{"word":"hevne","clue":[4,5],"dir":"d","start":[5,5],"text":"gjengjelde"},{"word":"ledig","clue":[4,7],"dir":"d","start":[5,7],"text":"fri"},{"word":"kai","clue":[5,0],"dir":"a","start":[5,1],"text":"brygge"},{"word":"hel","clue":[5,4],"dir":"a","start":[5,5],"text":"fullstendig"},{"word":"niese","clue":[6,2],"dir":"a","start":[6,3],"text":"brordatter"},{"word":"lei","clue":[6,2],"dir":"d","start":[7,2],"text":"trett av"},{"word":"elg","clue":[7,0],"dir":"a","start":[7,1],"img":"moose","text":""},{"word":"vid","clue":[7,4],"dir":"a","start":[7,5],"text":"bred"},{"word":"angi","clue":[8,3],"dir":"a","start":[8,4],"text":"tyste"},{"word":"ris","clue":[9,0],"dir":"a","start":[9,1],"text":"kornsort"},{"word":"eng","clue":[9,4],"dir":"a","start":[9,5],"text":"gresslette"}]},{"id":3,"seed":7078,"W":8,"H":10,"grid":["########","#skulder","#vit#e#e","#arvelig","#rue#e#i","#trim#b#","##g#esel","#migrene","#u#ren#v","#spå#gre"],"words":[{"word":"svart","clue":[0,1],"dir":"d","start":[1,1],"text":"farge"},{"word":"kirurgi","clue":[0,2],"dir":"d","start":[1,2],"text":"operasjon"},{"word":"utvei","clue":[0,3],"dir":"d","start":[1,3],"text":"løsning"},{"word":"dele","clue":[0,5],"dir":"d","start":[1,5],"text":"splitte"},{"word":"regi","clue":[0,7],"dir":"d","start":[1,7],"text":"ledelse"},{"word":"skulder","clue":[1,0],"dir":"a","start":[1,1],"text":"del av kroppen"},{"word":"vit","clue":[2,0],"dir":"a","start":[2,1],"text":"klok (gml.)"},{"word":"arvelig","clue":[3,0],"dir":"a","start":[3,1],"text":"nedarvet"},{"word":"rue","clue":[4,0],"dir":"a","start":[4,1],"text":"haug"},{"word":"mere","clue":[4,4],"dir":"d","start":[5,4],"text":"mer"},{"word":"ben","clue":[4,6],"dir":"d","start":[5,6],"text":"knokkel"},{"word":"trim","clue":[5,0],"dir":"a","start":[5,1],"text":"mosjon"},{"word":"seng","clue":[5,5],"dir":"d","start":[6,5],"img":"bed","text":""},{"word":"leve","clue":[5,7],"dir":"d","start":[6,7],"text":"eksistere"},{"word":"mus","clue":[6,1],"dir":"d","start":[7,1],"img":"mouse","text":""},{"word":"esel","clue":[6,3],"dir":"a","start":[6,4],"text":"grådyr"},{"word":"grå","clue":[6,3],"dir":"d","start":[7,3],"text":"farge"},{"word":"migrene","clue":[7,0],"dir":"a","start":[7,1],"text":"hodepine"},{"word":"ren","clue":[8,2],"dir":"a","start":[8,3],"text":"renslig"},{"word":"spå","clue":[9,0],"dir":"a","start":[9,1],"text":"forutsi"},{"word":"gre","clue":[9,4],"dir":"a","start":[9,5],"text":"kjemme"}]},{"id":4,"seed":7093,"W":8,"H":10,"grid":["########","#skjold#","#trone#a","#jordnær","#ånd#e#k","#leit#p#","#n#s#bat","#erklære","##a#uran","#ordrett"],"words":[{"word":"stjålne","clue":[0,1],"dir":"d","start":[1,1],"text":"ranede"},{"word":"krone","clue":[0,2],"dir":"d","start":[1,2],"img":"crown","text":""},{"word":"jordisk","clue":[0,3],"dir":"d","start":[1,3],"text":"verdslig"},{"word":"ond","clue":[0,4],"dir":"d","start":[1,4],"text":"slem"},{"word":"lene","clue":[0,5],"dir":"d","start":[1,5],"text":"støtte seg"},{"word":"skjold","clue":[1,0],"dir":"a","start":[1,1],"img":"shield","text":""},{"word":"ark","clue":[1,7],"dir":"d","start":[2,7],"text":"papirblad"},{"word":"trone","clue":[2,0],"dir":"a","start":[2,1],"text":"kongestol"},{"word":"jordnær","clue":[3,0],"dir":"a","start":[3,1],"text":"nøktern"},{"word":"ånd","clue":[4,0],"dir":"a","start":[4,1],"text":"sjel"},{"word":"parat","clue":[4,6],"dir":"d","start":[5,6],"text":"klar"},{"word":"leit","clue":[5,0],"dir":"a","start":[5,1],"text":"trist"},{"word":"bære","clue":[5,5],"dir":"d","start":[6,5],"text":"løfte"},{"word":"tent","clue":[5,7],"dir":"d","start":[6,7],"text":"antent"},{"word":"rar","clue":[6,2],"dir":"d","start":[7,2],"text":"merkelig"},{"word":"bat","clue":[6,4],"dir":"a","start":[6,5],"text":"balltre (eng.)"},{"word":"lur","clue":[6,4],"dir":"d","start":[7,4],"text":"slu"},{"word":"erklære","clue":[7,0],"dir":"a","start":[7,1],"text":"kunngjøre"},{"word":"uran","clue":[8,3],"dir":"a","start":[8,4],"text":"radioaktivt metall"},{"word":"ordrett","clue":[9,0],"dir":"a","start":[9,1],"text":"bokstavelig"}]},{"id":5,"seed":7115,"W":8,"H":10,"grid":["########","#sinnsro","#øde#n#m","#ledning","#vag#k#å","#flat#v#","#a#n#liv","#tog#ane","##s#styr","#stu#elv"],"words":[{"word":"sølvfat","clue":[0,1],"dir":"d","start":[1,1],"text":"fin tallerken"},{"word":"ideal","clue":[0,2],"dir":"d","start":[1,2],"text":"forbilde"},{"word":"nedgang","clue":[0,3],"dir":"d","start":[1,3],"text":"fall"},{"word":"snik","clue":[0,5],"dir":"d","start":[1,5],"text":"lurendreier"},{"word":"omgå","clue":[0,7],"dir":"d","start":[1,7],"text":"unngå"},{"word":"sinnsro","clue":[1,0],"dir":"a","start":[1,1],"text":"indre ro"},{"word":"øde","clue":[2,0],"dir":"a","start":[2,1],"text":"folketomt"},{"word":"ledning","clue":[3,0],"dir":"a","start":[3,1],"text":"kabel"},{"word":"vag","clue":[4,0],"dir":"a","start":[4,1],"text":"uklar"},{"word":"vinyl","clue":[4,6],"dir":"d","start":[5,6],"text":"plate"},{"word":"flat","clue":[5,0],"dir":"a","start":[5,1],"text":"jevn"},{"word":"late","clue":[5,5],"dir":"d","start":[6,5],"text":"dovne"},{"word":"verv","clue":[5,7],"dir":"d","start":[6,7],"text":"oppdrag"},{"word":"ost","clue":[6,2],"dir":"d","start":[7,2],"img":"cheese","text":""},{"word":"liv","clue":[6,4],"dir":"a","start":[6,5],"text":"tilværelse"},{"word":"tog","clue":[7,0],"dir":"a","start":[7,1],"img":"train","text":""},{"word":"ane","clue":[7,4],"dir":"a","start":[7,5],"text":"forfar"},{"word":"styr","clue":[8,3],"dir":"a","start":[8,4],"text":"kontroll"},{"word":"stu","clue":[9,0],"dir":"a","start":[9,1],"text":"stue (dial.)"},{"word":"elv","clue":[9,4],"dir":"a","start":[9,5],"img":"river","text":""}]},{"id":6,"seed":7149,"W":8,"H":10,"grid":["########","#apparat","#dra#u#r","#rasisme","#eks#sag","#stol#t#","#s#rus#u","#endring","##a#edel","#ego#eie"],"words":[{"word":"adresse","clue":[0,1],"dir":"d","start":[1,1],"text":"bosted"},{"word":"prakt","clue":[0,2],"dir":"d","start":[1,2],"text":"storhet"},{"word":"passord","clue":[0,3],"dir":"d","start":[1,3],"text":"kode"},{"word":"russ","clue":[0,5],"dir":"d","start":[1,5],"text":"avgangselev"},{"word":"treg","clue":[0,7],"dir":"d","start":[1,7],"text":"langsom"},{"word":"apparat","clue":[1,0],"dir":"a","start":[1,1],"text":"maskin"},{"word":"dra","clue":[2,0],"dir":"a","start":[2,1],"text":"reise"},{"word":"mat","clue":[2,6],"dir":"d","start":[3,6],"text":"føde"},{"word":"rasisme","clue":[3,0],"dir":"a","start":[3,1],"text":"fordomsfullhet"},{"word":"eks","clue":[4,0],"dir":"a","start":[4,1],"text":"tidligere partner"},{"word":"sag","clue":[4,4],"dir":"a","start":[4,5],"img":"saw","text":""},{"word":"lure","clue":[4,4],"dir":"d","start":[5,4],"text":"narre"},{"word":"stol","clue":[5,0],"dir":"a","start":[5,1],"img":"chair","text":""},{"word":"side","clue":[5,5],"dir":"d","start":[6,5],"text":"flate"},{"word":"ugle","clue":[5,7],"dir":"d","start":[6,7],"img":"owl","text":""},{"word":"rus","clue":[6,2],"dir":"a","start":[6,3],"text":"beruselse"},{"word":"nag","clue":[6,2],"dir":"d","start":[7,2],"text":"uvilje"},{"word":"nei","clue":[6,6],"dir":"d","start":[7,6],"text":"ikke ja"},{"word":"endring","clue":[7,0],"dir":"a","start":[7,1],"text":"forandring"},{"word":"edel","clue":[8,3],"dir":"a","start":[8,4],"text":"adelig"},{"word":"ego","clue":[9,0],"dir":"a","start":[9,1],"text":"jeg"},{"word":"eie","clue":[9,4],"dir":"a","start":[9,5],"text":"ha"}]},{"id":7,"seed":7156,"W":8,"H":10,"grid":["########","#sebra#a","#kne#kar","#ess#tur","#pott#r#","#smi#sau","#i#løk#s","#sel#ass","##i#ofte","#uke#føl"],"words":[{"word":"skepsis","clue":[0,1],"dir":"d","start":[1,1],"text":"tvil"},{"word":"ensom","clue":[0,2],"dir":"d","start":[1,2],"text":"alene"},{"word":"bestill","clue":[0,3],"dir":"d","start":[1,3],"text":"reserver!"},{"word":"akt","clue":[0,5],"dir":"d","start":[1,5],"text":"del av skuespill"},{"word":"arr","clue":[0,7],"dir":"d","start":[1,7],"text":"merke etter sår"},{"word":"sebra","clue":[1,0],"dir":"a","start":[1,1],"text":"stripet hest"},{"word":"aura","clue":[1,6],"dir":"d","start":[2,6],"text":"utstråling"},{"word":"kne","clue":[2,0],"dir":"a","start":[2,1],"text":"ledd"},{"word":"kar","clue":[2,4],"dir":"a","start":[2,5],"text":"fyr"},{"word":"ess","clue":[3,0],"dir":"a","start":[3,1],"text":"toppkort"},{"word":"tur","clue":[3,4],"dir":"a","start":[3,5],"text":"utflukt"},{"word":"pott","clue":[4,0],"dir":"a","start":[4,1],"text":"pengepott"},{"word":"skaff","clue":[4,5],"dir":"d","start":[5,5],"text":"skaffe!"},{"word":"ussel","clue":[4,7],"dir":"d","start":[5,7],"text":"elendig"},{"word":"smi","clue":[5,0],"dir":"a","start":[5,1],"text":"hamre"},{"word":"sau","clue":[5,4],"dir":"a","start":[5,5],"img":"sheep","text":""},{"word":"løk","clue":[6,2],"dir":"a","start":[6,3],"img":"onion","text":""},{"word":"eik","clue":[6,2],"dir":"d","start":[7,2],"text":"løvtre"},{"word":"stø","clue":[6,6],"dir":"d","start":[7,6],"text":"stødig"},{"word":"sel","clue":[7,0],"dir":"a","start":[7,1],"img":"seal","text":""},{"word":"ass","clue":[7,4],"dir":"a","start":[7,5],"text":"ener i kort"},{"word":"ofte","clue":[8,3],"dir":"a","start":[8,4],"text":"mange ganger"},{"word":"uke","clue":[9,0],"dir":"a","start":[9,1],"text":"sju dager"},{"word":"føl","clue":[9,4],"dir":"a","start":[9,5],"text":"hesteunge"}]},{"id":8,"seed":7172,"W":8,"H":10,"grid":["########","#utsagn#","#lat#lås","#øke#ulv","#sti#p#i","#ting#k#","##k#ugla","#ekstrem","#g#yte#o","#gin#vær"],"words":[{"word":"uløst","clue":[0,1],"dir":"d","start":[1,1],"text":"åpen"},{"word":"taktikk","clue":[0,2],"dir":"d","start":[1,2],"text":"strategi"},{"word":"stein","clue":[0,3],"dir":"d","start":[1,3],"img":"stone","text":""},{"word":"glup","clue":[0,5],"dir":"d","start":[1,5],"text":"skarp"},{"word":"nål","clue":[0,6],"dir":"d","start":[1,6],"text":"sy-redskap"},{"word":"utsagn","clue":[1,0],"dir":"a","start":[1,1],"text":"uttalelse"},{"word":"svi","clue":[1,7],"dir":"d","start":[2,7],"text":"brenne"},{"word":"lat","clue":[2,0],"dir":"a","start":[2,1],"text":"doven"},{"word":"lås","clue":[2,4],"dir":"a","start":[2,5],"text":"stenging"},{"word":"øke","clue":[3,0],"dir":"a","start":[3,1],"text":"vokse"},{"word":"ulv","clue":[3,4],"dir":"a","start":[3,5],"img":"wolf","text":""},{"word":"sti","clue":[4,0],"dir":"a","start":[4,1],"text":"gangvei"},{"word":"gutt","clue":[4,4],"dir":"d","start":[5,4],"text":"ung mann"},{"word":"kle","clue":[4,6],"dir":"d","start":[5,6],"text":"passe"},{"word":"ting","clue":[5,0],"dir":"a","start":[5,1],"text":"gjenstand"},{"word":"grev","clue":[5,5],"dir":"d","start":[6,5],"text":"adelsmann"},{"word":"amor","clue":[5,7],"dir":"d","start":[6,7],"text":"kjærlighetsgud"},{"word":"egg","clue":[6,1],"dir":"d","start":[7,1],"img":"egg","text":""},{"word":"ugla","clue":[6,3],"dir":"a","start":[6,4],"text":"uglen"},{"word":"syn","clue":[6,3],"dir":"d","start":[7,3],"text":"sans"},{"word":"ekstrem","clue":[7,0],"dir":"a","start":[7,1],"text":"ytterliggående"},{"word":"yte","clue":[8,2],"dir":"a","start":[8,3],"text":"prestere"},{"word":"gin","clue":[9,0],"dir":"a","start":[9,1],"text":"einerbrennevin"},{"word":"vær","clue":[9,4],"dir":"a","start":[9,5],"text":"sauehann"}]},{"id":9,"seed":7090,"W":8,"H":10,"grid":["########","#absurde","#gal#ark","#ego#dus","#rask#e#","#ess#f#r","##j#rede","#nei#riv","#æ#liga#","#råd#ass"],"words":[{"word":"agere","clue":[0,1],"dir":"d","start":[1,1],"text":"opptre"},{"word":"bagasje","clue":[0,2],"dir":"d","start":[1,2],"text":"koffert"},{"word":"sloss","clue":[0,3],"dir":"d","start":[1,3],"text":"kjempe"},{"word":"rad","clue":[0,5],"dir":"d","start":[1,5],"text":"rekke"},{"word":"drue","clue":[0,6],"dir":"d","start":[1,6],"img":"grape","text":""},{"word":"eks","clue":[0,7],"dir":"d","start":[1,7],"text":"tidligere partner"},{"word":"absurde","clue":[1,0],"dir":"a","start":[1,1],"text":"meningsløse"},{"word":"gal","clue":[2,0],"dir":"a","start":[2,1],"text":"sprø"},{"word":"ark","clue":[2,4],"dir":"a","start":[2,5],"text":"papirblad"},{"word":"ego","clue":[3,0],"dir":"a","start":[3,1],"text":"jeg"},{"word":"dus","clue":[3,4],"dir":"a","start":[3,5],"text":"jeg og du"},{"word":"rask","clue":[4,0],"dir":"a","start":[4,1],"text":"kjapp"},{"word":"ferga","clue":[4,5],"dir":"d","start":[5,5],"text":"fergen"},{"word":"rev","clue":[4,7],"dir":"d","start":[5,7],"img":"fox","text":""},{"word":"ess","clue":[5,0],"dir":"a","start":[5,1],"text":"toppkort"},{"word":"dias","clue":[5,6],"dir":"d","start":[6,6],"text":"lysbilde"},{"word":"nær","clue":[6,1],"dir":"d","start":[7,1],"text":"tett ved"},{"word":"rede","clue":[6,3],"dir":"a","start":[6,4],"text":"reir"},{"word":"ild","clue":[6,3],"dir":"d","start":[7,3],"text":"flamme"},{"word":"nei","clue":[7,0],"dir":"a","start":[7,1],"text":"ikke ja"},{"word":"riv","clue":[7,4],"dir":"a","start":[7,5],"text":"rive!"},{"word":"liga","clue":[8,2],"dir":"a","start":[8,3],"text":"serie"},{"word":"råd","clue":[9,0],"dir":"a","start":[9,1],"text":"tips"},{"word":"ass","clue":[9,4],"dir":"a","start":[9,5],"text":"ener i kort"}]},{"id":10,"seed":7172,"W":8,"H":10,"grid":["########","#droppe#","#rør#arr","#ord#stu","#pen#s#s","#snev#v#","##d#reir","#levende","#å#ide#i","#søk#ren"],"words":[{"word":"drops","clue":[0,1],"dir":"d","start":[1,1],"text":"sukkertøy"},{"word":"rørende","clue":[0,2],"dir":"d","start":[1,2],"text":"gripende"},{"word":"ordne","clue":[0,3],"dir":"d","start":[1,3],"text":"fikse"},{"word":"pass","clue":[0,5],"dir":"d","start":[1,5],"text":"reisedokument"},{"word":"ert","clue":[0,6],"dir":"d","start":[1,6],"text":"belgfrukt"},{"word":"droppe","clue":[1,0],"dir":"a","start":[1,1],"text":"sløyfe"},{"word":"rus","clue":[1,7],"dir":"d","start":[2,7],"text":"beruselse"},{"word":"rør","clue":[2,0],"dir":"a","start":[2,1],"text":"tube"},{"word":"arr","clue":[2,4],"dir":"a","start":[2,5],"text":"merke etter sår"},{"word":"ord","clue":[3,0],"dir":"a","start":[3,1],"text":"glose"},{"word":"stu","clue":[3,4],"dir":"a","start":[3,5],"text":"stue (dial.)"},{"word":"pen","clue":[4,0],"dir":"a","start":[4,1],"text":"vakker"},{"word":"vred","clue":[4,4],"dir":"d","start":[5,4],"text":"sint"},{"word":"vid","clue":[4,6],"dir":"d","start":[5,6],"text":"bred"},{"word":"snev","clue":[5,0],"dir":"a","start":[5,1],"text":"anelse"},{"word":"ener","clue":[5,5],"dir":"d","start":[6,5],"text":"nummer én"},{"word":"rein","clue":[5,7],"dir":"d","start":[6,7],"img":"reindeer","text":""},{"word":"lås","clue":[6,1],"dir":"d","start":[7,1],"text":"stenging"},{"word":"reir","clue":[6,3],"dir":"a","start":[6,4],"img":"nest","text":""},{"word":"vik","clue":[6,3],"dir":"d","start":[7,3],"text":"bukt"},{"word":"levende","clue":[7,0],"dir":"a","start":[7,1],"text":"i live"},{"word":"ide","clue":[8,2],"dir":"a","start":[8,3],"text":"innfall"},{"word":"søk","clue":[9,0],"dir":"a","start":[9,1],"text":"leting"},{"word":"ren","clue":[9,4],"dir":"a","start":[9,5],"text":"renslig"}]},{"id":11,"seed":7296,"W":8,"H":10,"grid":["########","#skamløs","#tov#agn","#art#blø","#kran#e#","#kul#b#s","##p#verv","#sta#due","#i#l#rir","#lov#and"],"words":[{"word":"stakk","clue":[0,1],"dir":"d","start":[1,1],"text":"løp"},{"word":"korrupt","clue":[0,2],"dir":"d","start":[1,2],"text":"bestikkelig"},{"word":"avtal","clue":[0,3],"dir":"d","start":[1,3],"text":"bli enige!"},{"word":"lab","clue":[0,5],"dir":"d","start":[1,5],"text":"laboratorium"},{"word":"øgle","clue":[0,6],"dir":"d","start":[1,6],"text":"reptil"},{"word":"snø","clue":[0,7],"dir":"d","start":[1,7],"img":"snow","text":""},{"word":"skamløs","clue":[1,0],"dir":"a","start":[1,1],"text":"frekk"},{"word":"tov","clue":[2,0],"dir":"a","start":[2,1],"text":"tau"},{"word":"agn","clue":[2,4],"dir":"a","start":[2,5],"text":"fiskelokk"},{"word":"art","clue":[3,0],"dir":"a","start":[3,1],"text":"slag, sort"},{"word":"blø","clue":[3,4],"dir":"a","start":[3,5],"text":"miste blod"},{"word":"kran","clue":[4,0],"dir":"a","start":[4,1],"text":"vannkran"},{"word":"bedra","clue":[4,5],"dir":"d","start":[5,5],"text":"lure"},{"word":"sverd","clue":[4,7],"dir":"d","start":[5,7],"img":"sword","text":""},{"word":"kul","clue":[5,0],"dir":"a","start":[5,1],"text":"tøff"},{"word":"ruin","clue":[5,6],"dir":"d","start":[6,6],"text":"forfall"},{"word":"sil","clue":[6,1],"dir":"d","start":[7,1],"text":"dørslag"},{"word":"verv","clue":[6,3],"dir":"a","start":[6,4],"text":"oppdrag"},{"word":"alv","clue":[6,3],"dir":"d","start":[7,3],"text":"huldrevesen"},{"word":"sta","clue":[7,0],"dir":"a","start":[7,1],"text":"egensindig"},{"word":"due","clue":[7,4],"dir":"a","start":[7,5],"text":"fredsfugl"},{"word":"rir","clue":[8,4],"dir":"a","start":[8,5],"text":"sitter på hest"},{"word":"lov","clue":[9,0],"dir":"a","start":[9,1],"text":"regel"},{"word":"and","clue":[9,4],"dir":"a","start":[9,5],"img":"duck","text":""}]},{"id":12,"seed":7318,"W":8,"H":10,"grid":["########","#absurde","#gal#ørn","#ego#pai","#rak#e#g","#eske#m#","##j#krav","#ledsage","#e#e#nei","#kål#gre"],"words":[{"word":"agere","clue":[0,1],"dir":"d","start":[1,1],"text":"opptre"},{"word":"bagasje","clue":[0,2],"dir":"d","start":[1,2],"text":"koffert"},{"word":"slokk","clue":[0,3],"dir":"d","start":[1,3],"text":"sluk!"},{"word":"røpe","clue":[0,5],"dir":"d","start":[1,5],"text":"avsløre"},{"word":"dra","clue":[0,6],"dir":"d","start":[1,6],"text":"reise"},{"word":"enig","clue":[0,7],"dir":"d","start":[1,7],"text":"samstemt"},{"word":"absurde","clue":[1,0],"dir":"a","start":[1,1],"text":"meningsløse"},{"word":"gal","clue":[2,0],"dir":"a","start":[2,1],"text":"sprø"},{"word":"ørn","clue":[2,4],"dir":"a","start":[2,5],"img":"eagle","text":""},{"word":"ego","clue":[3,0],"dir":"a","start":[3,1],"text":"jeg"},{"word":"pai","clue":[3,4],"dir":"a","start":[3,5],"text":"terte"},{"word":"rak","clue":[4,0],"dir":"a","start":[4,1],"text":"rett"},{"word":"eks","clue":[4,4],"dir":"d","start":[5,4],"text":"tidligere partner"},{"word":"mager","clue":[4,6],"dir":"d","start":[5,6],"text":"tynn"},{"word":"eske","clue":[5,0],"dir":"a","start":[5,1],"text":"boks"},{"word":"rang","clue":[5,5],"dir":"d","start":[6,5],"text":"grad"},{"word":"veie","clue":[5,7],"dir":"d","start":[6,7],"text":"måle vekt"},{"word":"lek","clue":[6,1],"dir":"d","start":[7,1],"text":"spill"},{"word":"krav","clue":[6,3],"dir":"a","start":[6,4],"text":"fordring"},{"word":"del","clue":[6,3],"dir":"d","start":[7,3],"text":"part"},{"word":"ledsage","clue":[7,0],"dir":"a","start":[7,1],"text":"følge"},{"word":"nei","clue":[8,4],"dir":"a","start":[8,5],"text":"ikke ja"},{"word":"kål","clue":[9,0],"dir":"a","start":[9,1],"img":"cabbage","text":""},{"word":"gre","clue":[9,4],"dir":"a","start":[9,5],"text":"kjemme"}]},{"id":13,"seed":7332,"W":8,"H":10,"grid":["########","#utløp#p","#eie#ire","#nag#pop","#driv#e#","#rat#v#s","#e#ideal","#tom#svi","##n#skip","#øde#ess"],"words":[{"word":"uendret","clue":[0,1],"dir":"d","start":[1,1],"text":"som før"},{"word":"tiara","clue":[0,2],"dir":"d","start":[1,2],"text":"diadem"},{"word":"legitim","clue":[0,3],"dir":"d","start":[1,3],"text":"lovlig"},{"word":"pip","clue":[0,5],"dir":"d","start":[1,5],"text":"fuglelyd"},{"word":"pep","clue":[0,7],"dir":"d","start":[1,7],"text":"futt"},{"word":"utløp","clue":[1,0],"dir":"a","start":[1,1],"text":"munning"},{"word":"roe","clue":[1,6],"dir":"d","start":[2,6],"text":"rotvekst"},{"word":"eie","clue":[2,0],"dir":"a","start":[2,1],"text":"ha"},{"word":"ire","clue":[2,4],"dir":"a","start":[2,5],"text":"sinne"},{"word":"nag","clue":[3,0],"dir":"a","start":[3,1],"text":"uvilje"},{"word":"pop","clue":[3,4],"dir":"a","start":[3,5],"text":"musikksjanger"},{"word":"driv","clue":[4,0],"dir":"a","start":[4,1],"text":"pågangsmot"},{"word":"veske","clue":[4,5],"dir":"d","start":[5,5],"img":"bag","text":""},{"word":"slips","clue":[4,7],"dir":"d","start":[5,7],"text":"halsbånd"},{"word":"rat","clue":[5,0],"dir":"a","start":[5,1],"text":"styrehjul"},{"word":"avis","clue":[5,6],"dir":"d","start":[6,6],"text":"dagblad"},{"word":"ideal","clue":[6,2],"dir":"a","start":[6,3],"text":"forbilde"},{"word":"ond","clue":[6,2],"dir":"d","start":[7,2],"text":"slem"},{"word":"tom","clue":[7,0],"dir":"a","start":[7,1],"text":"uten innhold"},{"word":"svi","clue":[7,4],"dir":"a","start":[7,5],"text":"brenne"},{"word":"skip","clue":[8,3],"dir":"a","start":[8,4],"img":"ship","text":""},{"word":"øde","clue":[9,0],"dir":"a","start":[9,1],"text":"folketomt"},{"word":"ess","clue":[9,4],"dir":"a","start":[9,5],"text":"toppkort"}]},{"id":14,"seed":7004,"W":8,"H":10,"grid":["########","#oppkast","#kro#sir","#sot#kne","#ete#eng","#rett#s#","##s#ytre","#stadion","#a#pek#d","#uke#kue"],"words":[{"word":"okser","clue":[0,1],"dir":"d","start":[1,1],"text":"hanndyr"},{"word":"protest","clue":[0,2],"dir":"d","start":[1,2],"text":"innsigelse"},{"word":"potet","clue":[0,3],"dir":"d","start":[1,3],"img":"potato","text":""},{"word":"aske","clue":[0,5],"dir":"d","start":[1,5],"text":"rest etter bål"},{"word":"sinnsro","clue":[0,6],"dir":"d","start":[1,6],"text":"indre ro"},{"word":"treg","clue":[0,7],"dir":"d","start":[1,7],"text":"langsom"},{"word":"oppkast","clue":[1,0],"dir":"a","start":[1,1],"text":"spy"},{"word":"kro","clue":[2,0],"dir":"a","start":[2,1],"text":"vertshus"},{"word":"sir","clue":[2,4],"dir":"a","start":[2,5],"text":"herre (eng.)"},{"word":"sot","clue":[3,0],"dir":"a","start":[3,1],"text":"kull-støv"},{"word":"kne","clue":[3,4],"dir":"a","start":[3,5],"text":"ledd"},{"word":"ete","clue":[4,0],"dir":"a","start":[4,1],"text":"spise (dyr)"},{"word":"eng","clue":[4,4],"dir":"a","start":[4,5],"text":"gresslette"},{"word":"tyde","clue":[4,4],"dir":"d","start":[5,4],"text":"tolke"},{"word":"rett","clue":[5,0],"dir":"a","start":[5,1],"text":"korrekt"},{"word":"tikk","clue":[5,5],"dir":"d","start":[6,5],"text":"klokkelyd"},{"word":"ende","clue":[5,7],"dir":"d","start":[6,7],"text":"slutt"},{"word":"sau","clue":[6,1],"dir":"d","start":[7,1],"img":"sheep","text":""},{"word":"ytre","clue":[6,3],"dir":"a","start":[6,4],"text":"utvendig"},{"word":"ape","clue":[6,3],"dir":"d","start":[7,3],"text":"etterligne"},{"word":"stadion","clue":[7,0],"dir":"a","start":[7,1],"text":"arena"},{"word":"pek","clue":[8,2],"dir":"a","start":[8,3],"text":"hint"},{"word":"uke","clue":[9,0],"dir":"a","start":[9,1],"text":"sju dager"},{"word":"kue","clue":[9,4],"dir":"a","start":[9,5],"text":"tvinge ned"}]},{"id":15,"seed":7053,"W":8,"H":10,"grid":["########","#ustabil","#spe#ære","#elg#rom","#tent#n#","#tie#vis","##s#hest","#mel#ski","#å#ide#r","#lut#nær"],"words":[{"word":"usett","clue":[0,1],"dir":"d","start":[1,1],"text":"ubemerket"},{"word":"spleise","clue":[0,2],"dir":"d","start":[1,2],"text":"dele utgift"},{"word":"tegne","clue":[0,3],"dir":"d","start":[1,3],"text":"skissere"},{"word":"bær","clue":[0,5],"dir":"d","start":[1,5],"img":"berry","text":""},{"word":"ironisk","clue":[0,6],"dir":"d","start":[1,6],"text":"spydig"},{"word":"lem","clue":[0,7],"dir":"d","start":[1,7],"text":"arm, ben"},{"word":"ustabil","clue":[1,0],"dir":"a","start":[1,1],"text":"vaklende"},{"word":"spe","clue":[2,0],"dir":"a","start":[2,1],"text":"tynn"},{"word":"ære","clue":[2,4],"dir":"a","start":[2,5],"text":"heder"},{"word":"elg","clue":[3,0],"dir":"a","start":[3,1],"img":"moose","text":""},{"word":"rom","clue":[3,4],"dir":"a","start":[3,5],"text":"værelse"},{"word":"tent","clue":[4,0],"dir":"a","start":[4,1],"text":"antent"},{"word":"vesen","clue":[4,5],"dir":"d","start":[5,5],"text":"skapning"},{"word":"stirr","clue":[4,7],"dir":"d","start":[5,7],"text":"glan!"},{"word":"tie","clue":[5,0],"dir":"a","start":[5,1],"text":"være stille"},{"word":"vis","clue":[5,4],"dir":"a","start":[5,5],"text":"klok"},{"word":"mål","clue":[6,1],"dir":"d","start":[7,1],"text":"hensikt"},{"word":"hest","clue":[6,3],"dir":"a","start":[6,4],"img":"horse","text":""},{"word":"lit","clue":[6,3],"dir":"d","start":[7,3],"text":"tillit"},{"word":"mel","clue":[7,0],"dir":"a","start":[7,1],"text":"malt korn"},{"word":"ski","clue":[7,4],"dir":"a","start":[7,5],"img":"ski","text":""},{"word":"ide","clue":[8,2],"dir":"a","start":[8,3],"text":"innfall"},{"word":"lut","clue":[9,0],"dir":"a","start":[9,1],"text":"ludd"},{"word":"nær","clue":[9,4],"dir":"a","start":[9,5],"text":"tett ved"}]},{"id":16,"seed":7058,"W":8,"H":10,"grid":["########","#frø#tøv","#ram#i#r","#omtanke","#slå#g#d","#sele#d#","#e#i#arm","#tog#mai","##s#vogn","#sti#ren"],"words":[{"word":"frosset","clue":[0,1],"dir":"d","start":[1,1],"text":"islagt"},{"word":"ramle","clue":[0,2],"dir":"d","start":[1,2],"text":"falle"},{"word":"ømtålig","clue":[0,3],"dir":"d","start":[1,3],"text":"sart"},{"word":"ting","clue":[0,5],"dir":"d","start":[1,5],"text":"gjenstand"},{"word":"vred","clue":[0,7],"dir":"d","start":[1,7],"text":"sint"},{"word":"frø","clue":[1,0],"dir":"a","start":[1,1],"text":"kim"},{"word":"tøv","clue":[1,4],"dir":"a","start":[1,5],"text":"tull"},{"word":"ram","clue":[2,0],"dir":"a","start":[2,1],"text":"hard"},{"word":"omtanke","clue":[3,0],"dir":"a","start":[3,1],"text":"omsorg"},{"word":"slå","clue":[4,0],"dir":"a","start":[4,1],"text":"dra til"},{"word":"drage","clue":[4,6],"dir":"d","start":[5,6],"img":"kite","text":""},{"word":"sele","clue":[5,0],"dir":"a","start":[5,1],"text":"bilbelte"},{"word":"amor","clue":[5,5],"dir":"d","start":[6,5],"text":"kjærlighetsgud"},{"word":"minn","clue":[5,7],"dir":"d","start":[6,7],"text":"påminn!"},{"word":"ost","clue":[6,2],"dir":"d","start":[7,2],"img":"cheese","text":""},{"word":"arm","clue":[6,4],"dir":"a","start":[6,5],"text":"lem"},{"word":"tog","clue":[7,0],"dir":"a","start":[7,1],"img":"train","text":""},{"word":"mai","clue":[7,4],"dir":"a","start":[7,5],"text":"måned"},{"word":"vogn","clue":[8,3],"dir":"a","start":[8,4],"text":"kjerre"},{"word":"sti","clue":[9,0],"dir":"a","start":[9,1],"text":"gangvei"},{"word":"ren","clue":[9,4],"dir":"a","start":[9,5],"text":"renslig"}]},{"id":17,"seed":7063,"W":8,"H":10,"grid":["########","#spasere","#lås#l#p","#aktuell","#kam#vie","#klar#b#","##l#esel","#servere","#t#u#kai","#ass#kle"],"words":[{"word":"slakk","clue":[0,1],"dir":"d","start":[1,1],"text":"løs"},{"word":"påkalle","clue":[0,2],"dir":"d","start":[1,2],"text":"rope på"},{"word":"astma","clue":[0,3],"dir":"d","start":[1,3],"text":"pustebesvær"},{"word":"elev","clue":[0,5],"dir":"d","start":[1,5],"text":"skolebarn"},{"word":"eple","clue":[0,7],"dir":"d","start":[1,7],"img":"apple","text":""},{"word":"spasere","clue":[1,0],"dir":"a","start":[1,1],"text":"gå tur"},{"word":"lås","clue":[2,0],"dir":"a","start":[2,1],"text":"stenging"},{"word":"liberal","clue":[2,6],"dir":"d","start":[3,6],"text":"frisinnet"},{"word":"aktuell","clue":[3,0],"dir":"a","start":[3,1],"text":"dagsaktuell"},{"word":"kam","clue":[4,0],"dir":"a","start":[4,1],"text":"hårredskap"},{"word":"vie","clue":[4,4],"dir":"a","start":[4,5],"text":"gifte"},{"word":"rev","clue":[4,4],"dir":"d","start":[5,4],"img":"fox","text":""},{"word":"klar","clue":[5,0],"dir":"a","start":[5,1],"text":"ferdig"},{"word":"sekk","clue":[5,5],"dir":"d","start":[6,5],"text":"pose"},{"word":"leie","clue":[5,7],"dir":"d","start":[6,7],"text":"hyre"},{"word":"sta","clue":[6,1],"dir":"d","start":[7,1],"text":"egensindig"},{"word":"esel","clue":[6,3],"dir":"a","start":[6,4],"text":"grådyr"},{"word":"rus","clue":[6,3],"dir":"d","start":[7,3],"text":"beruselse"},{"word":"servere","clue":[7,0],"dir":"a","start":[7,1],"text":"varte opp"},{"word":"kai","clue":[8,4],"dir":"a","start":[8,5],"text":"brygge"},{"word":"ass","clue":[9,0],"dir":"a","start":[9,1],"text":"ener i kort"},{"word":"kle","clue":[9,4],"dir":"a","start":[9,5],"text":"passe"}]},{"id":18,"seed":7078,"W":8,"H":10,"grid":["########","#taktikk","#ull#v#v","#slimete","#eik#r#l","#nekt#v#","##r#rein","#utdanne","#l#øve#v","#vær#rue"],"words":[{"word":"tusen","clue":[0,1],"dir":"d","start":[1,1],"text":"1000"},{"word":"alliert","clue":[0,2],"dir":"d","start":[1,2],"text":"forbundet"},{"word":"klikk","clue":[0,3],"dir":"d","start":[1,3],"text":"museklikk"},{"word":"iver","clue":[0,5],"dir":"d","start":[1,5],"text":"entusiasme"},{"word":"kvel","clue":[0,7],"dir":"d","start":[1,7],"text":"kveld (dial.)"},{"word":"taktikk","clue":[1,0],"dir":"a","start":[1,1],"text":"strategi"},{"word":"ull","clue":[2,0],"dir":"a","start":[2,1],"text":"saueull"},{"word":"slimete","clue":[3,0],"dir":"a","start":[3,1],"text":"sleip"},{"word":"eik","clue":[4,0],"dir":"a","start":[4,1],"text":"løvtre"},{"word":"trav","clue":[4,4],"dir":"d","start":[5,4],"text":"hestegang"},{"word":"vin","clue":[4,6],"dir":"d","start":[5,6],"text":"druedrikk"},{"word":"nekt","clue":[5,0],"dir":"a","start":[5,1],"text":"avvis!"},{"word":"ener","clue":[5,5],"dir":"d","start":[6,5],"text":"nummer én"},{"word":"neve","clue":[5,7],"dir":"d","start":[6,7],"text":"hånd"},{"word":"ulv","clue":[6,1],"dir":"d","start":[7,1],"img":"wolf","text":""},{"word":"rein","clue":[6,3],"dir":"a","start":[6,4],"img":"reindeer","text":""},{"word":"dør","clue":[6,3],"dir":"d","start":[7,3],"img":"door","text":""},{"word":"utdanne","clue":[7,0],"dir":"a","start":[7,1],"text":"lære opp"},{"word":"øve","clue":[8,2],"dir":"a","start":[8,3],"text":"trene"},{"word":"vær","clue":[9,0],"dir":"a","start":[9,1],"text":"sauehann"},{"word":"rue","clue":[9,4],"dir":"a","start":[9,5],"text":"haug"}]},{"id":19,"seed":7115,"W":8,"H":10,"grid":["########","#utslett","#søt#k#å","#traktor","#akt#e#n","#bein#n#","#i#s#kyr","#lek#vri","##l#jeep","#avl#gre"],"words":[{"word":"ustabil","clue":[0,1],"dir":"d","start":[1,1],"text":"vaklende"},{"word":"tørke","clue":[0,2],"dir":"d","start":[1,2],"text":"tørr periode"},{"word":"statisk","clue":[0,3],"dir":"d","start":[1,3],"text":"ubevegelig"},{"word":"ekte","clue":[0,5],"dir":"d","start":[1,5],"text":"genuin"},{"word":"tårn","clue":[0,7],"dir":"d","start":[1,7],"img":"tower","text":""},{"word":"utslett","clue":[1,0],"dir":"a","start":[1,1],"text":"hudirritasjon"},{"word":"søt","clue":[2,0],"dir":"a","start":[2,1],"text":"sukkerholdig"},{"word":"traktor","clue":[3,0],"dir":"a","start":[3,1],"text":"gårdsmaskin"},{"word":"akt","clue":[4,0],"dir":"a","start":[4,1],"text":"del av skuespill"},{"word":"nyrer","clue":[4,6],"dir":"d","start":[5,6],"text":"organer"},{"word":"bein","clue":[5,0],"dir":"a","start":[5,1],"text":"ben"},{"word":"kveg","clue":[5,5],"dir":"d","start":[6,5],"text":"storfe"},{"word":"ripe","clue":[5,7],"dir":"d","start":[6,7],"text":"skramme"},{"word":"elv","clue":[6,2],"dir":"d","start":[7,2],"img":"river","text":""},{"word":"kyr","clue":[6,4],"dir":"a","start":[6,5],"text":"kveg"},{"word":"lek","clue":[7,0],"dir":"a","start":[7,1],"text":"spill"},{"word":"vri","clue":[7,4],"dir":"a","start":[7,5],"text":"sno"},{"word":"jeep","clue":[8,3],"dir":"a","start":[8,4],"text":"terrengbil"},{"word":"avl","clue":[9,0],"dir":"a","start":[9,1],"text":"oppdrett"},{"word":"gre","clue":[9,4],"dir":"a","start":[9,5],"text":"kjemme"}]},{"id":20,"seed":7071,"W":8,"H":10,"grid":["########","#sport#a","#tap#rap","#øre#o#e","#varsel#","#ete#n#a","#t#rådyr","#enerett","##ø#e#r#","#øde#pek"],"words":[{"word":"støvete","clue":[0,1],"dir":"d","start":[1,1],"text":"skitten"},{"word":"parat","clue":[0,2],"dir":"d","start":[1,2],"text":"klar"},{"word":"operere","clue":[0,3],"dir":"d","start":[1,3],"text":"kirurg-arbeid"},{"word":"troende","clue":[0,5],"dir":"d","start":[1,5],"text":"religiøs"},{"word":"ape","clue":[0,7],"dir":"d","start":[1,7],"text":"etterligne"},{"word":"sport","clue":[1,0],"dir":"a","start":[1,1],"text":"idrett"},{"word":"tap","clue":[2,0],"dir":"a","start":[2,1],"text":"nederlag"},{"word":"rap","clue":[2,4],"dir":"a","start":[2,5],"text":"musikkstil"},{"word":"øre","clue":[3,0],"dir":"a","start":[3,1],"img":"ear","text":""},{"word":"varsel","clue":[4,0],"dir":"a","start":[4,1],"text":"advarsel"},{"word":"art","clue":[4,7],"dir":"d","start":[5,7],"text":"slag, sort"},{"word":"ete","clue":[5,0],"dir":"a","start":[5,1],"text":"spise (dyr)"},{"word":"åre","clue":[5,4],"dir":"d","start":[6,4],"img":"oar","text":""},{"word":"ytre","clue":[5,6],"dir":"d","start":[6,6],"text":"utvendig"},{"word":"rådyr","clue":[6,2],"dir":"a","start":[6,3],"text":"hjortedyr"},{"word":"nød","clue":[6,2],"dir":"d","start":[7,2],"text":"krise"},{"word":"enerett","clue":[7,0],"dir":"a","start":[7,1],"text":"monopol"},{"word":"øde","clue":[9,0],"dir":"a","start":[9,1],"text":"folketomt"},{"word":"pek","clue":[9,4],"dir":"a","start":[9,5],"text":"hint"}]},{"id":21,"seed":7014,"W":8,"H":10,"grid":["########","#stjerne","#tro#a#d","#jordnær","#ånd#gru","#leit#a#","#n#sel#t","#erklære","##i#trim","#svi#dra"],"words":[{"word":"stjålne","clue":[0,1],"dir":"d","start":[1,1],"text":"ranede"},{"word":"trone","clue":[0,2],"dir":"d","start":[1,2],"text":"kongestol"},{"word":"jordisk","clue":[0,3],"dir":"d","start":[1,3],"text":"verdslig"},{"word":"rang","clue":[0,5],"dir":"d","start":[1,5],"text":"grad"},{"word":"edru","clue":[0,7],"dir":"d","start":[1,7],"text":"ikke full"},{"word":"stjerne","clue":[1,0],"dir":"a","start":[1,1],"img":"star","text":""},{"word":"tro","clue":[2,0],"dir":"a","start":[2,1],"text":"tillit"},{"word":"æra","clue":[2,6],"dir":"d","start":[3,6],"text":"epoken"},{"word":"jordnær","clue":[3,0],"dir":"a","start":[3,1],"text":"nøktern"},{"word":"ånd","clue":[4,0],"dir":"a","start":[4,1],"text":"sjel"},{"word":"gru","clue":[4,4],"dir":"a","start":[4,5],"text":"redsel"},{"word":"telt","clue":[4,4],"dir":"d","start":[5,4],"img":"tent","text":""},{"word":"leit","clue":[5,0],"dir":"a","start":[5,1],"text":"trist"},{"word":"lærd","clue":[5,5],"dir":"d","start":[6,5],"text":"kunnskapsrik"},{"word":"tema","clue":[5,7],"dir":"d","start":[6,7],"text":"emne"},{"word":"sel","clue":[6,2],"dir":"a","start":[6,3],"img":"seal","text":""},{"word":"riv","clue":[6,2],"dir":"d","start":[7,2],"text":"rive!"},{"word":"rir","clue":[6,6],"dir":"d","start":[7,6],"text":"sitter på hest"},{"word":"erklære","clue":[7,0],"dir":"a","start":[7,1],"text":"kunngjøre"},{"word":"trim","clue":[8,3],"dir":"a","start":[8,4],"text":"mosjon"},{"word":"svi","clue":[9,0],"dir":"a","start":[9,1],"text":"brenne"},{"word":"dra","clue":[9,4],"dir":"a","start":[9,5],"text":"reise"}]},{"id":22,"seed":7015,"W":8,"H":10,"grid":["########","#biljakt","#ide#r#u","#nederst","#dans#m#","#eliksir","#r#nei#a","#sag#led","##r#skli","#eks#ego"],"words":[{"word":"binders","clue":[0,1],"dir":"d","start":[1,1],"text":"papirklips"},{"word":"ideal","clue":[0,2],"dir":"d","start":[1,2],"text":"forbilde"},{"word":"ledning","clue":[0,3],"dir":"d","start":[1,3],"text":"kabel"},{"word":"arr","clue":[0,5],"dir":"d","start":[1,5],"text":"merke etter sår"},{"word":"tut","clue":[0,7],"dir":"d","start":[1,7],"text":"hornsignal"},{"word":"biljakt","clue":[1,0],"dir":"a","start":[1,1],"text":"jakt med bil"},{"word":"ide","clue":[2,0],"dir":"a","start":[2,1],"text":"innfall"},{"word":"eske","clue":[2,4],"dir":"d","start":[3,4],"text":"boks"},{"word":"smi","clue":[2,6],"dir":"d","start":[3,6],"text":"hamre"},{"word":"nederst","clue":[3,0],"dir":"a","start":[3,1],"text":"lavest"},{"word":"dans","clue":[4,0],"dir":"a","start":[4,1],"text":"vals eller tango"},{"word":"silke","clue":[4,5],"dir":"d","start":[5,5],"text":"fin tekstil"},{"word":"radio","clue":[4,7],"dir":"d","start":[5,7],"text":"mottaker"},{"word":"eliksir","clue":[5,0],"dir":"a","start":[5,1],"text":"trylledrikk"},{"word":"nei","clue":[6,2],"dir":"a","start":[6,3],"text":"ikke ja"},{"word":"ark","clue":[6,2],"dir":"d","start":[7,2],"text":"papirblad"},{"word":"elg","clue":[6,6],"dir":"d","start":[7,6],"img":"moose","text":""},{"word":"sag","clue":[7,0],"dir":"a","start":[7,1],"img":"saw","text":""},{"word":"led","clue":[7,4],"dir":"a","start":[7,5],"text":"gjerdeport"},{"word":"skli","clue":[8,3],"dir":"a","start":[8,4],"text":"gli"},{"word":"eks","clue":[9,0],"dir":"a","start":[9,1],"text":"tidligere partner"},{"word":"ego","clue":[9,4],"dir":"a","start":[9,5],"text":"jeg"}]},{"id":23,"seed":7012,"W":8,"H":10,"grid":["########","#tie#søk","#ord#ø#l","#moderne","#aning#m","#tikk#u#","##s#emne","#uke#and","#n#ringe","#nyt#nål"],"words":[{"word":"tomat","clue":[0,1],"dir":"d","start":[1,1],"img":"tomato","text":""},{"word":"ironisk","clue":[0,2],"dir":"d","start":[1,2],"text":"spydig"},{"word":"eddik","clue":[0,3],"dir":"d","start":[1,3],"text":"syrlig krydder"},{"word":"sørg","clue":[0,5],"dir":"d","start":[1,5],"text":"gråt!"},{"word":"klem","clue":[0,7],"dir":"d","start":[1,7],"text":"omfavnelse"},{"word":"tie","clue":[1,0],"dir":"a","start":[1,1],"text":"være stille"},{"word":"søk","clue":[1,4],"dir":"a","start":[1,5],"text":"leting"},{"word":"ord","clue":[2,0],"dir":"a","start":[2,1],"text":"glose"},{"word":"enke","clue":[2,4],"dir":"d","start":[3,4],"text":"etterlatt kone"},{"word":"moderne","clue":[3,0],"dir":"a","start":[3,1],"text":"tidsriktig"},{"word":"aning","clue":[4,0],"dir":"a","start":[4,1],"text":"anelse"},{"word":"unngå","clue":[4,6],"dir":"d","start":[5,6],"text":"styre unna"},{"word":"tikk","clue":[5,0],"dir":"a","start":[5,1],"text":"klokkelyd"},{"word":"mann","clue":[5,5],"dir":"d","start":[6,5],"text":"herre"},{"word":"edel","clue":[5,7],"dir":"d","start":[6,7],"text":"adelig"},{"word":"unn","clue":[6,1],"dir":"d","start":[7,1],"text":"gi gjerne"},{"word":"emne","clue":[6,3],"dir":"a","start":[6,4],"text":"tema"},{"word":"ert","clue":[6,3],"dir":"d","start":[7,3],"text":"belgfrukt"},{"word":"uke","clue":[7,0],"dir":"a","start":[7,1],"text":"sju dager"},{"word":"and","clue":[7,4],"dir":"a","start":[7,5],"img":"duck","text":""},{"word":"ringe","clue":[8,2],"dir":"a","start":[8,3],"text":"telefonere"},{"word":"nyt","clue":[9,0],"dir":"a","start":[9,1],"text":"kos deg!"},{"word":"nål","clue":[9,4],"dir":"a","start":[9,5],"text":"sy-redskap"}]},{"id":24,"seed":7026,"W":8,"H":10,"grid":["########","#skaff#v","#lov#ire","#ass#liv","#sele#s#","#klå#vid","##i#leke","#egg#dom","#s#lut#o","#ski#agn"],"words":[{"word":"slask","clue":[0,1],"dir":"d","start":[1,1],"text":"sølevær"},{"word":"koselig","clue":[0,2],"dir":"d","start":[1,2],"text":"hyggelig"},{"word":"avslå","clue":[0,3],"dir":"d","start":[1,3],"text":"si nei"},{"word":"fil","clue":[0,5],"dir":"d","start":[1,5],"text":"rekke"},{"word":"vev","clue":[0,7],"dir":"d","start":[1,7],"text":"tøy"},{"word":"skaff","clue":[1,0],"dir":"a","start":[1,1],"text":"skaffe!"},{"word":"risiko","clue":[1,6],"dir":"d","start":[2,6],"text":"fare"},{"word":"lov","clue":[2,0],"dir":"a","start":[2,1],"text":"regel"},{"word":"ire","clue":[2,4],"dir":"a","start":[2,5],"text":"sinne"},{"word":"ass","clue":[3,0],"dir":"a","start":[3,1],"text":"ener i kort"},{"word":"liv","clue":[3,4],"dir":"a","start":[3,5],"text":"tilværelse"},{"word":"sele","clue":[4,0],"dir":"a","start":[4,1],"text":"bilbelte"},{"word":"vedta","clue":[4,5],"dir":"d","start":[5,5],"text":"beslutte"},{"word":"demon","clue":[4,7],"dir":"d","start":[5,7],"text":"ond ånd"},{"word":"klå","clue":[5,0],"dir":"a","start":[5,1],"text":"klø"},{"word":"vid","clue":[5,4],"dir":"a","start":[5,5],"text":"bred"},{"word":"ess","clue":[6,1],"dir":"d","start":[7,1],"text":"toppkort"},{"word":"leke","clue":[6,3],"dir":"a","start":[6,4],"text":"tumle"},{"word":"gli","clue":[6,3],"dir":"d","start":[7,3],"text":"skli"},{"word":"egg","clue":[7,0],"dir":"a","start":[7,1],"img":"egg","text":""},{"word":"dom","clue":[7,4],"dir":"a","start":[7,5],"text":"domkirke"},{"word":"lut","clue":[8,2],"dir":"a","start":[8,3],"text":"ludd"},{"word":"ski","clue":[9,0],"dir":"a","start":[9,1],"img":"ski","text":""},{"word":"agn","clue":[9,4],"dir":"a","start":[9,5],"text":"fiskelokk"}]}]}};window.SKAN_EMOJI={"sun": "☀️", "moon": "🌙", "star": "⭐", "tree": "🌳", "pine": "🌲", "spruce": "🌲", "birch": "🌳", "leaf": "🍃", "flower": "🌼", "rose": "🌹", "mushroom": "🍄", "berry": "🫐", "apple": "🍎", "pear": "🍐", "plum": "🫐", "cherry": "🍒", "lemon": "🍋", "melon": "🍈", "watermelon": "🍉", "grape": "🍇", "carrot": "🥕", "potato": "🥔", "onion": "🧅", "cabbage": "🥬", "tomato": "🍅", "bread": "🍞", "cheese": "🧀", "egg": "🥚", "milk": "🥛", "cake": "🎂", "waffle": "🧇", "honey": "🍯", "coffee": "☕", "tea": "🍵", "salt": "🧂", "soup": "🍲", "fish": "🐟", "salmon": "🐟", "cod": "🐟", "herring": "🐟", "crab": "🦀", "whale": "🐋", "seal": "🦭", "moose": "🫎", "deer": "🦌", "reindeer": "🦌", "bear": "🐻", "wolf": "🐺", "fox": "🦊", "hare": "🐇", "owl": "🦉", "eagle": "🦅", "puffin": "🐧", "gull": "🕊️", "duck": "🦆", "goose": "🪿", "swan": "🦢", "hen": "🐔", "cock": "🐓", "cat": "🐈", "dog": "🐕", "horse": "🐎", "cow": "🐄", "sheep": "🐑", "goat": "🐐", "pig": "🐖", "mouse": "🐁", "hedgehog": "🦔", "squirrel": "🐿️", "frog": "🐸", "snail": "🐌", "bee": "🐝", "butterfly": "🦋", "ant": "🐜", "spider": "🕷️", "house": "🏠", "cabin": "🛖", "church": "⛪", "tower": "🗼", "bridge": "🌉", "door": "🚪", "window": "🪟", "key": "🔑", "lamp": "💡", "candle": "🕯️", "chair": "🪑", "table": "🍽️", "bed": "🛏️", "clock": "🕰️", "bell": "🔔", "book": "📖", "pen": "🖊️", "letter": "✉️", "glasses": "👓", "hat": "🎩", "cap": "🧢", "mitten": "🧤", "sock": "🧦", "boot": "🥾", "scarf": "🧣", "sweater": "🧶", "umbrella": "☂️", "ball": "⚽", "kite": "🪁", "drum": "🥁", "guitar": "🎸", "violin": "🎻", "ski": "🎿", "sled": "🛷", "skate": "⛸️", "boat": "🚣", "ship": "⛵", "anchor": "⚓", "oar": "🚣", "car": "🚗", "bus": "🚌", "train": "🚆", "bicycle": "🚲", "plane": "✈️", "rocket": "🚀", "axe": "🪓", "hammer": "🔨", "saw": "🪚", "knife": "🔪", "spoon": "🥄", "fork": "🍴", "cup": "☕", "pot": "🍲", "kettle": "🫖", "basket": "🧺", "bag": "👜", "gift": "🎁", "heart": "❤️", "crown": "👑", "sword": "🗡️", "shield": "🛡️", "flag": "🚩", "map": "🗺️", "mountain": "⛰️", "island": "🏝️", "lake": "🏞️", "river": "🏞️", "wave": "🌊", "cloud": "☁️", "rain": "🌧️", "snow": "❄️", "ice": "🧊", "rainbow": "🌈", "fire": "🔥", "stone": "🪨", "lighthouse": "🗼", "tent": "⛺", "troll": "🧌", "ring": "💍", "coin": "🪙", "nut": "🌰", "cone": "🌲", "feather": "🪶", "nest": "🪺", "shell": "🐚", "tooth": "🦷", "eye": "👁️", "hand": "✋", "nose": "👃", "ear": "👂"};window.SKAN_IMGS={"lake": "img/lake.webp", "flower": "img/flower.webp", "kite": "img/kite.webp", "bag": "img/bag.webp", "chair": "img/chair.webp", "drum": "img/drum.webp", "mascot_puffin": "img/mascot_puffin.webp", "bed": "img/bed.webp", "sock": "img/sock.webp", "ant": "img/ant.webp", "skate": "img/skate.webp", "sheep": "img/sheep.webp", "wolf": "img/wolf.webp", "cup": "img/cup.webp", "hat": "img/hat.webp", "bus": "img/bus.webp", "mushroom": "img/mushroom.webp", "house": "img/house.webp", "knife": "img/knife.webp", "rain": "img/rain.webp", "pen": "img/pen.webp", "goose": "img/goose.webp", "melon": "img/melon.webp", "tea": "img/tea.webp", "hen": "img/hen.webp", "cherry": "img/cherry.webp", "pine": "img/pine.webp", "cabbage": "img/cabbage.webp", "island": "img/island.webp", "mascot_bear": "img/mascot_bear.webp", "flag": "img/flag.webp", "table": "img/table.webp", "sun": "img/sun.webp", "owl": "img/owl.webp", "fish": "img/fish.webp", "umbrella": "img/umbrella.webp", "glasses": "img/glasses.webp", "goat": "img/goat.webp", "moon": "img/moon.webp", "coffee": "img/coffee.webp", "ball": "img/ball.webp", "salt": "img/salt.webp", "lemon": "img/lemon.webp", "mascot_seal": "img/mascot_seal.webp", "bell": "img/bell.webp", "bridge": "img/bridge.webp", "nose": "img/nose.webp", "egg": "img/egg.webp", "spider": "img/spider.webp", "door": "img/door.webp", "squirrel": "img/squirrel.webp", "salmon": "img/salmon.webp", "eye": "img/eye.webp", "candle": "img/candle.webp", "ice": "img/ice.webp", "lamp": "img/lamp.webp", "ring": "img/ring.webp", "cone": "img/cone.webp", "tent": "img/tent.webp", "tomato": "img/tomato.webp", "mascot_fox": "img/mascot_fox.webp", "guitar": "img/guitar.webp", "butterfly": "img/butterfly.webp", "rose": "img/rose.webp", "troll": "img/troll.webp", "seal": "img/seal.webp", "shell": "img/shell.webp", "anchor": "img/anchor.webp", "hand": "img/hand.webp", "ship": "img/ship.webp", "river": "img/river.webp", "tower": "img/tower.webp", "book": "img/book.webp", "ski": "img/ski.webp", "boot": "img/boot.webp", "spoon": "img/spoon.webp", "pear": "img/pear.webp", "carrot": "img/carrot.webp", "heart": "img/heart.webp", "fire": "img/fire.webp", "dog": "img/dog.webp", "hero": "img/hero.webp", "key": "img/key.webp", "plum": "img/plum.webp", "puffin": "img/puffin.webp", "sword": "img/sword.webp", "berry": "img/berry.webp", "fox": "img/fox.webp", "rocket": "img/rocket.webp", "snow": "img/snow.webp", "spruce": "img/spruce.webp", "scarf": "img/scarf.webp", "axe": "img/axe.webp", "onion": "img/onion.webp", "feather": "img/feather.webp", "mountain": "img/mountain.webp", "horse": "img/horse.webp", "clock": "img/clock.webp", "wave": "img/wave.webp", "snail": "img/snail.webp", "cake": "img/cake.webp", "church": "img/church.webp", "deer": "img/deer.webp", "eagle": "img/eagle.webp", "cabin": "img/cabin.webp", "cap": "img/cap.webp", "grape": "img/grape.webp", "lighthouse": "img/lighthouse.webp", "stone": "img/stone.webp", "rainbow": "img/rainbow.webp", "swan": "img/swan.webp", "milk": "img/milk.webp", "bee": "img/bee.webp", "bread": "img/bread.webp", "whale": "img/whale.webp", "cat": "img/cat.webp", "cock": "img/cock.webp", "sweater": "img/sweater.webp", "star": "img/star.webp", "frog": "img/frog.webp", "crown": "img/crown.webp", "mouse": "img/mouse.webp", "gull": "img/gull.webp", "mascot_reindeer": "img/mascot_reindeer.webp", "moose": "img/moose.webp", "basket": "img/basket.webp", "bicycle": "img/bicycle.webp", "cloud": "img/cloud.webp", "waffle": "img/waffle.webp", "saw": "img/saw.webp", "potato": "img/potato.webp", "cod": "img/cod.webp", "duck": "img/duck.webp", "window": "img/window.webp", "oar": "img/oar.webp", "pot": "img/pot.webp", "train": "img/train.webp", "kettle": "img/kettle.webp", "tree": "img/tree.webp", "boat": "img/boat.webp", "ear": "img/ear.webp", "gift": "img/gift.webp", "cow": "img/cow.webp", "honey": "img/honey.webp", "birch": "img/birch.webp", "hare": "img/hare.webp", "nest": "img/nest.webp", "hedgehog": "img/hedgehog.webp", "cheese": "img/cheese.webp", "violin": "img/violin.webp", "leaf": "img/leaf.webp", "bear": "img/bear.webp", "car": "img/car.webp", "watermelon": "img/watermelon.webp", "herring": "img/herring.webp", "mascot_owl": "img/mascot_owl.webp", "hammer": "img/hammer.webp", "apple": "img/apple.webp", "soup": "img/soup.webp", "tooth": "img/tooth.webp", "shield": "img/shield.webp", "letter": "img/letter.webp", "map": "img/map.webp", "fork": "img/fork.webp", "crab": "img/crab.webp", "sled": "img/sled.webp", "mitten": "img/mitten.webp", "nut": "img/nut.webp", "reindeer": "img/reindeer.webp", "plane": "img/plane.webp", "coin": "img/coin.webp", "pig": "img/pig.webp"};</script>
+<script>/* Nordkryss — scanword game */
+(function(){
+'use strict';
+const DATA = window.SKAN_DATA;            // {ru:{puzzles:[...]}, no:{...}}
+const EMOJI = window.SKAN_EMOJI || {};     // concept -> emoji (fallback when no image)
+const IMGS = window.SKAN_IMGS || {};       // concept -> url
+const $ = s => document.querySelector(s);
 const LS = {
-  get(k, d) { try { const v = localStorage.getItem('nk-' + k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
-  set(k, v) { try { localStorage.setItem('nk-' + k, JSON.stringify(v)); } catch (e) {} },
+  get(k,d){try{const v=localStorage.getItem('nk2-'+k);return v==null?d:JSON.parse(v)}catch(e){return d}},
+  set(k,v){try{localStorage.setItem('nk2-'+k,JSON.stringify(v))}catch(e){}}
 };
-const $ = id => document.getElementById(id);
-const I18N = {
-  no: { tagline: 'Norske minikryssord — hver dag', solved: 'LØST', streakL: 'DAGER PÅ RAD', best: 'BESTE TID',
-        daily: 'DAGENS KRYSSORD', ready: 'Klar til å løses', done: 'Løst ✓ — kom tilbake i morgen',
-        sect: 'ALLE NIVÅER', home: '‹ Hjem', level: 'Nivå', dailyT: 'Dagens kryssord',
-        across: 'VANNRETT', down: 'LODDRETT', hint: '💡 Hint', check: '✓ Sjekk', clear: '⌫ Tøm feil',
-        win: 'Godt jobbet!', winsub: 'Du løste kryssordet', cont: 'Fortsett',
-        day: 'dag', days: 'dager', onrow: 'på rad', locale: 'nb-NO',
-        rows: ['QWERTYUIOPÅ', 'ASDFGHJKLØÆ', 'ZXCVBNM⌫'], re: /^[A-ZÆØÅ]$/ },
-  ru: { tagline: 'Мини-кроссворды — каждый день', solved: 'РЕШЕНО', streakL: 'ДНЕЙ ПОДРЯД', best: 'ЛУЧШЕЕ ВРЕМЯ',
-        daily: 'КРОССВОРД ДНЯ', ready: 'Готов к решению', done: 'Решён ✓ — возвращайся завтра',
-        sect: 'ВСЕ УРОВНИ', home: '‹ Домой', level: 'Уровень', dailyT: 'Кроссворд дня',
-        across: 'ПО ГОРИЗОНТАЛИ', down: 'ПО ВЕРТИКАЛИ', hint: '💡 Буква', check: '✓ Проверить', clear: '⌫ Стереть ошибки',
-        win: 'Отлично!', winsub: 'Кроссворд решён', cont: 'Дальше',
-        day: 'день', days: 'дней', onrow: 'подряд', locale: 'ru-RU',
-        rows: ['ЙЦУКЕНГШЩЗХ', 'ФЫВАПРОЛДЖЭ', 'ЯЧСМИТЬБЮ⌫'], re: /^[А-ЯЁ]$/ },
+const T = {
+  ru:{sub:'Сканворды в северном стиле',play:'Играть',level:'Сканворд',you:'Вы',opp:'Соперник',shuffle:'Заменить',word:'Слово',hint:'Подсказка',
+      win:'Вы победили!',lose:'Почти получилось!',winner:'Победитель',wins:'Победы',next:'Следующая игра',home:'Главная',
+      sound:'Звук',lang:'Язык',solved:'Решено',streak:'Серия',best:'Очки',nocoins:'Не хватает монет',react:['Впечатляет!','Отлично!','Супер!','Браво!','Так держать!','Великолепно!'],
+      daily:'Нажмите на клетку или подсказку, затем на букву внизу',chest:'до сундука',reset:'Сбросить прогресс',cont:'Продолжить'},
+  no:{sub:'Kryssord i nordisk stil',play:'Spill',level:'Kryssord',you:'Du',opp:'Motstander',shuffle:'Bytt',word:'Ord',hint:'Hint',
+      win:'Du vant!',lose:'Nesten!',winner:'Vinner',wins:'Seire',next:'Neste spill',home:'Hjem',
+      sound:'Lyd',lang:'Språk',solved:'Løst',streak:'Rekke',best:'Poeng',nocoins:'Ikke nok mynter',react:['Imponerende!','Strålende!','Supert!','Bravo!','Kjempebra!','Fantastisk!'],
+      daily:'Trykk på en rute eller et hint, så på en bokstav nederst',chest:'til kisten',reset:'Nullstill fremgang',cont:'Fortsett'}
 };
-let LANG = LS.get('lang', 'no');
-let PUZZLES = DATA[LANG];
-const T = () => I18N[LANG];
-function setLang(l) {
-  if (!DATA[l]) return;
-  LANG = l; LS.set('lang', l); PUZZLES = DATA[l];
-  applyT(); buildKb(); renderHome();
-}
-function applyT() {
-  const t = T();
-  $('t-tagline').textContent = t.tagline; $('t-solved').textContent = t.solved;
-  $('t-streak').textContent = t.streakL; $('t-best').textContent = t.best;
-  $('t-daily').textContent = t.daily; $('t-sect').textContent = t.sect;
-  $('t-home').textContent = t.home; $('t-hint').textContent = t.hint;
-  $('t-check').textContent = t.check; $('t-clear').textContent = t.clear;
-  $('t-win').textContent = t.win; $('t-winsub').textContent = t.winsub;
-  $('t-cont').textContent = t.cont;
-  $('lang-no').classList.toggle('on', LANG === 'no');
-  $('lang-ru').classList.toggle('on', LANG === 'ru');
-  document.getElementById('kb').classList.toggle('ru', LANG === 'ru');
-}
-const todayKey = () => new Date().toISOString().slice(0, 10);
-const fmt = s => Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+const MASCOTS=[['fox','🦊'],['owl','🦉'],['bear','🐻'],['reindeer','🦌'],['puffin','🐧'],['seal','🦭']];
+let lang = LS.get('lang', (navigator.language||'').startsWith('ru')?'ru':'no');
+if(!DATA[lang]) lang='ru';
+let soundOn = LS.get('sound', true);
+let coins = LS.get('coins', 300);
+const t = k => T[lang][k];
 
-/* --- модель пазла --- */
-function slotsOf(grid) {
-  const n = grid.length, out = [];
-  for (let r = 0; r < n; r++) {
-    let c = 0;
-    while (c < n) {
-      if (grid[r][c] !== '#') {
-        const c0 = c;
-        while (c < n && grid[r][c] !== '#') c++;
-        if (c - c0 >= 3) out.push({ d: 'A', r, c: c0, len: c - c0 });
-      } else c++;
+/* ================= SOUND (WebAudio synth) ================= */
+let AC=null;
+function ac(){ if(!AC){ try{AC=new (window.AudioContext||window.webkitAudioContext)()}catch(e){} } if(AC&&AC.state==='suspended')AC.resume(); return AC; }
+function tone(f,dur,type,vol,when,slide){
+  if(!soundOn) return; const a=ac(); if(!a) return;
+  const t0=a.currentTime+(when||0), o=a.createOscillator(), g=a.createGain();
+  o.type=type||'sine'; o.frequency.setValueAtTime(f,t0);
+  if(slide) o.frequency.exponentialRampToValueAtTime(slide,t0+dur);
+  g.gain.setValueAtTime(0.0001,t0); g.gain.exponentialRampToValueAtTime(vol||.2,t0+.012); g.gain.exponentialRampToValueAtTime(0.0001,t0+dur);
+  o.connect(g); g.connect(a.destination); o.start(t0); o.stop(t0+dur+.05);
+}
+function noise(dur,vol,freq){
+  if(!soundOn) return; const a=ac(); if(!a) return;
+  const b=a.createBuffer(1,a.sampleRate*dur,a.sampleRate), d=b.getChannelData(0);
+  for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,3);
+  const s=a.createBufferSource(), f=a.createBiquadFilter(), g=a.createGain();
+  f.type='bandpass'; f.frequency.value=freq||1800; g.gain.value=vol||.25;
+  s.buffer=b; s.connect(f); f.connect(g); g.connect(a.destination); s.start();
+}
+// marimba-ish note: sine + quiet overtone
+function mar(f,when,vol){ tone(f,.35,'sine',vol||.22,when); tone(f*4,.08,'sine',(vol||.22)*.25,when); }
+const PENTA=[523.25,587.33,659.25,783.99,880,1046.5,1174.66,1318.5];
+let combo=0;
+const SFX={
+  tap(){ noise(.04,.18,2600); },
+  pick(){ noise(.05,.22,1400); tone(420,.06,'triangle',.06); },
+  place(){ mar(PENTA[Math.min(combo,PENTA.length-1)]); noise(.03,.12,3000); },
+  bad(){ tone(180,.22,'square',.07,0,120); tone(140,.25,'sine',.12,.02,90); if(navigator.vibrate)navigator.vibrate(60); },
+  word(){ [0,1,2,3,4].forEach((i)=>mar([659.25,783.99,987.77,1174.66,1318.5][i],i*.07,.2)); tone(1568,.5,'sine',.06,.35); },
+  opp(){ tone(330,.05,'triangle',.04); },
+  win(){ const n=[523.25,659.25,783.99,1046.5,783.99,1046.5,1318.5]; n.forEach((f,i)=>{mar(f,i*.12,.24); tone(f/2,.3,'triangle',.06,i*.12)}); setTimeout(()=>noise(.6,.12,5000),900); },
+  coin(){ tone(1318.5,.08,'square',.05); tone(1760,.12,'square',.05,.07); },
+  shuffle(){ for(let i=0;i<5;i++) noise(.04,.12,1200+i*300); }
+};
+
+/* ================= STATE ================= */
+let P=null, sol=null, cur=null, solvedCells=null, words=[], selWord=-1, actCell=null, tray=[], score=0, oppScore=0, oppTimer=null, mistakes=0, startT=0, finished=false;
+const prog = () => LS.get('prog-'+lang, {done:[], scores:{}, wins:0});
+const saveProg = p => LS.set('prog-'+lang, p);
+
+function key(r,c){return r+','+c}
+
+/* ================= HOME ================= */
+function renderHome(){
+  document.documentElement.lang=lang;
+  $('#h-sub').textContent=t('sub');
+  const pr=prog(), list=DATA[lang].puzzles;
+  const next=Math.min(pr.done.length, list.length-1);
+  $('#h-play').innerHTML=`${t('play')}<small>${t('level')} ${next+1}</small>`;
+  $('#h-play').onclick=()=>{SFX.tap(); startLevel(next)};
+  const lv=$('#h-lv'); lv.innerHTML='';
+  list.forEach((p,i)=>{
+    const b=document.createElement('button'); b.textContent=i+1;
+    if(pr.done.includes(i)) b.className='done'; else if(i===next) b.className='cur'; else if(i>next) b.className='lock';
+    b.onclick=()=>{ if(i>next){SFX.bad();return} SFX.tap(); startLevel(i); };
+    lv.appendChild(b);
+  });
+  $('#h-coins').textContent=coins;
+  $('#h-lang-ru').classList.toggle('on',lang==='ru'); $('#h-lang-no').classList.toggle('on',lang==='no');
+  $('#h-snd').textContent=(soundOn?'🔊 ':'🔇 ')+t('sound');
+  $('#st-solved').textContent=pr.done.length; $('#st-wins').textContent=pr.wins||0;
+  $('#st-solved-l').textContent=t('solved'); $('#st-wins-l').textContent=t('wins');
+  $('#st-best').textContent=Object.values(pr.scores||{}).reduce((a,b)=>a+b,0); $('#st-best-l').textContent=t('best');
+  show('home');
+}
+function show(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id===id)); }
+
+/* ================= GAME ================= */
+function startLevel(i){
+  P=DATA[lang].puzzles[i]; P.index=i;
+  const H=P.H, W=P.W;
+  sol=P.grid.map(r=>r.split(''));
+  const saved=LS.get('state-'+lang+'-'+i,null);
+  cur=sol.map(r=>r.map(ch=>ch==='#'?'#':''));
+  score=0; oppScore=0; mistakes=0; combo=0; finished=false; startT=Date.now();
+  if(saved){ cur=saved.cur; score=saved.score; oppScore=saved.opp; }
+  words=P.words.map((w,wi)=>{
+    const cells=[]; let [r,c]=w.start;
+    for(let k=0;k<w.word.length;k++){ cells.push([r,c]); if(w.dir==='a')c++; else r++; }
+    return Object.assign({},w,{cells,i:wi});
+  });
+  buildBoard(); layout(); requestAnimationFrame(fitClues);
+  $('#g-me').textContent=t('you'); $('#g-op').textContent=t('opp');
+  $('#t-sh').textContent=t('shuffle'); $('#t-wd').textContent=t('word'); $('#t-hn').textContent=t('hint');
+  updScores(true); updCoins();
+  const first=words.findIndex(w=>!wordDone(w)); selectWord(first<0?0:first);
+  refillTray(true);
+  show('game');
+  if(P.index===0 && !saved) toast(t('daily'),3200);
+  startOpp();
+  if(isComplete()) finish();
+}
+
+function buildBoard(){
+  const b=$('#board'); b.innerHTML='';
+  b.style.gridTemplateColumns=`repeat(${P.W},var(--cell))`;
+  const hosts={};
+  words.forEach(w=>{ (hosts[key(...w.clue)]=hosts[key(...w.clue)]||{})[w.dir]=w; });
+  for(let r=0;r<P.H;r++) for(let c=0;c<P.W;c++){
+    const d=document.createElement('div'); d.className='c'; d.dataset.r=r; d.dataset.c=c;
+    if(sol[r][c]==='#'){
+      const h=hosts[key(r,c)];
+      if(r===0&&c===0){ d.classList.add('badge'); d.innerHTML=`${t('level')}<b>${P.index+1}</b>`; }
+      else if(!h){ d.classList.add('deco'); }
+      else{
+        d.classList.add('k');
+        const parts=[h.a,h.d].filter(Boolean);
+        if(parts.length===1){ d.innerHTML=`<div class="full">${clueHTML(parts[0])}</div>`; }
+        else{ d.innerHTML=`<div class="half t">${clueHTML(h.a)}</div><div class="half b">${clueHTML(h.d)}</div>`; }
+        if(h.a) d.insertAdjacentHTML('beforeend',`<i class="ar r" style="top:${parts.length>1?'22%':'calc(50% - 4px)'}"></i>`);
+        if(h.d) d.insertAdjacentHTML('beforeend',`<i class="ar d" style="left:calc(50% - 4px)"></i>`);
+        d.onclick=()=>{ SFX.tap(); const ws=parts.map(p=>p.i); const at=ws.indexOf(selWord); selectWord(ws[(at+1)%ws.length]); };
+      }
+    } else {
+      d.classList.add('w');
+      d.innerHTML=`<span class="ch">${cur[r][c]||''}</span>`;
+      if(cur[r][c]) d.classList.add('done');
+      d.onclick=()=>onCellTap(r,c);
     }
+    b.appendChild(d);
   }
-  for (let c = 0; c < n; c++) {
-    let r = 0;
-    while (r < n) {
-      if (grid[r][c] !== '#') {
-        const r0 = r;
-        while (r < n && grid[r][c] !== '#') r++;
-        if (r - r0 >= 3) out.push({ d: 'D', r: r0, c, len: r - r0 });
-      } else r++;
-    }
+}
+function clueHTML(w){
+  if(w.img){
+    const em=EMOJI[w.img]||'';
+    return `<img src="img/${w.img}.webp" alt="" onerror="this.outerHTML='<span class=&quot;emo&quot;>${em}</span>'">`;
   }
-  return out;
+  return `<span>${(w.text||w.word).replace(/\s+/g,' ')}</span>`;
 }
-function cellsOf(s) {
-  const out = [];
-  for (let i = 0; i < s.len; i++) out.push(s.d === 'A' ? [s.r, s.c + i] : [s.r + i, s.c]);
-  return out;
+function cellEl(r,c){ return $(`#board .c[data-r="${r}"][data-c="${c}"]`); }
+function layout(){
+  const vw=Math.min(window.innerWidth,520), vh=window.innerHeight;
+  const avH=vh-($('#game .top').offsetHeight||56)-($('#game .vs').offsetHeight||36)-66-86-24;
+  const cs=Math.floor(Math.min((vw-16)/P.W,(avH)/P.H));
+  document.documentElement.style.setProperty('--cell',Math.max(30,Math.min(cs,58))+'px');
 }
-function numberSlots(grid, ss) {
-  const starts = new Set(ss.map(s => s.r + ',' + s.c));
-  const num = {}; let k = 0; const n = grid.length;
-  for (let r = 0; r < n; r++) for (let c = 0; c < n; c++)
-    if (starts.has(r + ',' + c)) num[r + ',' + c] = ++k;
-  ss.forEach(s => s.n = num[s.r + ',' + s.c]);
-  return num;
-}
-
-/* --- состояние --- */
-let cur = 0, dir = 'A', sel = null, timer = null, secs = 0, model = null;
-
-function loadPuzzle(idx) {
-  cur = idx;
-  const p = PUZZLES[idx];
-  const grid = p.grid.map(row => row.split(''));
-  const ss = slotsOf(grid);
-  const num = numberSlots(grid, ss);
-  const clueOf = {};
-  ['A', 'D'].forEach(d => p.clues[d].forEach(c => clueOf[d + c.n] = c.clue));
-  ss.forEach(s => s.clue = clueOf[s.d + s.n] || '');
-  const cellSlots = {};
-  ss.forEach((s, i) => cellsOf(s).forEach(([r, c]) => {
-    (cellSlots[r + ',' + c] = cellSlots[r + ',' + c] || []).push(i);
-  }));
-  const prog = LS.get('prog-' + LANG, {})[idx] || {};
-  model = { p, grid, ss, num, cellSlots, n: grid.length, entry: {} };
-  Object.assign(model.entry, prog);
-  const first = ss[0];
-  sel = { r: first.r, c: first.c }; dir = first.d;
-  secs = 0;
-  renderBoard();
-  $('gtitle').textContent = idx === dailyIdx() ? T().dailyT : T().level + ' ' + (idx + 1);
-  clearInterval(timer);
-  if (!isSolved(idx)) timer = setInterval(() => { secs++; $('gtime').textContent = fmt(secs); }, 1000);
-  $('gtime').textContent = '0:00';
-  show('s-game');
-}
-
-function saveProg() {
-  const all = LS.get('prog-' + LANG, {}); all[cur] = model.entry; LS.set('prog-' + LANG, all);
-}
-const isSolved = idx => LS.get('solved-' + LANG, []).includes(idx);
-
-/* --- рендер --- */
-function renderBoard() {
-  const b = $('board'); b.style.gridTemplateColumns = `repeat(${model.n},1fr)`;
-  b.innerHTML = '';
-  for (let r = 0; r < model.n; r++) for (let c = 0; c < model.n; c++) {
-    const div = document.createElement('div');
-    const ch = model.grid[r][c];
-    if (ch === '#') div.className = 'cell blk';
-    else {
-      div.className = 'cell';
-      div.id = 'cell-' + r + '-' + c;
-      const nn = model.num[r + ',' + c];
-      div.innerHTML = (nn ? `<span class="n">${nn}</span>` : '') + `<span class="l"></span>`;
-      div.onclick = () => tapCell(r, c);
-    }
-    b.appendChild(div);
-  }
-  refresh();
-}
-
-function curSlot() {
-  const list = (model.cellSlots[sel.r + ',' + sel.c] || []).map(i => model.ss[i]);
-  return list.find(s => s.d === dir) || list[0];
-}
-
-function refresh() {
-  const s = curSlot(); if (s) dir = s.d;
-  const inWord = new Set(s ? cellsOf(s).map(([r, c]) => r + ',' + c) : []);
-  for (let r = 0; r < model.n; r++) for (let c = 0; c < model.n; c++) {
-    const el = $('cell-' + r + '-' + c); if (!el) continue;
-    el.classList.toggle('inword', inWord.has(r + ',' + c));
-    el.classList.toggle('sel', sel.r === r && sel.c === c);
-    const v = model.entry[r + ',' + c] || '';
-    el.querySelector('.l').textContent = v;
-  }
-  if (s) $('clue').innerHTML =
-    `<b>${s.n} ${s.d === 'A' ? T().across : T().down}</b> ${s.clue} <span style="color:var(--sub)">(${s.len})</span>`;
-}
-
-/* --- взаимодействие --- */
-function tapCell(r, c) {
-  if (sel.r === r && sel.c === c) toggleDir();
-  else { sel = { r, c }; const list = (model.cellSlots[r + ',' + c] || []).map(i => model.ss[i]); if (!list.find(s => s.d === dir)) dir = list[0].d; }
-  refresh();
-}
-function toggleDir() {
-  const list = (model.cellSlots[sel.r + ',' + sel.c] || []).map(i => model.ss[i]);
-  if (list.length > 1) { dir = dir === 'A' ? 'D' : 'A'; if (!list.find(s => s.d === dir)) dir = list[0].d; }
-  refresh();
-}
-function stepClue(step) {
-  const s = curSlot(); const i = model.ss.indexOf(s);
-  const j = (i + step + model.ss.length) % model.ss.length;
-  const t = model.ss[j]; dir = t.d; sel = { r: t.r, c: t.c }; refresh();
-}
-function typeKey(ch) {
-  model.entry[sel.r + ',' + sel.c] = ch;
-  const el = $('cell-' + sel.r + '-' + sel.c);
-  el.classList.remove('err');
-  saveProg();
-  const s = curSlot(); const cs = cellsOf(s);
-  const i = cs.findIndex(([r, c]) => r === sel.r && c === sel.c);
-  for (let k = i + 1; k < cs.length; k++) {
-    const [r, c] = cs[k];
-    if (!model.entry[r + ',' + c]) { sel = { r, c }; break; }
-    if (k === cs.length - 1) { const [rr, cc] = cs[Math.min(i + 1, cs.length - 1)]; sel = { r: rr, c: cc }; }
-  }
-  refresh(); winCheck();
-}
-function backKey() {
-  const key = sel.r + ',' + sel.c;
-  if (model.entry[key]) { delete model.entry[key]; }
-  else {
-    const s = curSlot(); const cs = cellsOf(s);
-    const i = cs.findIndex(([r, c]) => r === sel.r && c === sel.c);
-    if (i > 0) { const [r, c] = cs[i - 1]; sel = { r, c }; delete model.entry[r + ',' + c]; }
-  }
-  saveProg(); refresh();
-}
-function hint() {
-  const ch = model.grid[sel.r][sel.c];
-  typeKey(ch);
-}
-function checkAll() {
-  let wrong = 0;
-  for (const key in model.entry) {
-    const [r, c] = key.split(',').map(Number);
-    const ok = model.entry[key] === model.grid[r][c];
-    const el = $('cell-' + r + '-' + c);
-    el.classList.toggle('err', !ok);
-    if (!ok) wrong++;
-  }
-  if (!wrong) winCheck(true);
-}
-function clearWrong() {
-  for (const key in model.entry) {
-    const [r, c] = key.split(',').map(Number);
-    if (model.entry[key] !== model.grid[r][c]) {
-      delete model.entry[key];
-      $('cell-' + r + '-' + c).classList.remove('err');
-    }
-  }
-  saveProg(); refresh();
-}
-
-/* --- победа --- */
-function winCheck(force) {
-  for (let r = 0; r < model.n; r++) for (let c = 0; c < model.n; c++) {
-    if (model.grid[r][c] === '#') continue;
-    if (model.entry[r + ',' + c] !== model.grid[r][c]) return false;
-  }
-  clearInterval(timer);
-  const solved = LS.get('solved-' + LANG, []);
-  if (!solved.includes(cur)) { solved.push(cur); LS.set('solved-' + LANG, solved); }
-  const best = LS.get('best', null);
-  if (secs > 0 && (!best || secs < best)) LS.set('best', secs);
-  const st = LS.get('streak', { last: '', n: 0 });
-  const today = todayKey();
-  if (st.last !== today) {
-    const y = new Date(Date.now() - 864e5).toISOString().slice(0, 10);
-    st.n = st.last === y ? st.n + 1 : 1; st.last = today; LS.set('streak', st);
-  }
-  $('wtime').textContent = fmt(secs);
-  $('wstreak').textContent = '🔥 ' + st.n + ' ' + (st.n === 1 ? T().day : T().days) + ' ' + T().onrow;
-  $('win').classList.add('show');
-  return true;
-}
-function closeWin() { $('win').classList.remove('show'); goHome(); }
-
-/* --- клавиатура --- */
-function buildKb() {
-  const kb = $('kb'); kb.innerHTML = '';
-  T().rows.forEach(row => {
-    const div = document.createElement('div'); div.className = 'krow';
-    for (const ch of row) {
-      const b = document.createElement('button');
-      b.className = 'key' + (ch === '⌫' ? ' wide' : '');
-      b.textContent = ch;
-      b.onclick = () => ch === '⌫' ? backKey() : typeKey(ch);
-      div.appendChild(b);
-    }
-    kb.appendChild(div);
+window.addEventListener('resize',()=>{ if(P&&$('#game').classList.contains('on')){ layout(); fitClues(); } });
+function fitClues(){
+  document.querySelectorAll('#board .c.k .full>span:not(.emo), #board .c.k .half>span:not(.emo)').forEach(sp=>{
+    const box=sp.parentElement; sp.style.fontSize=''; let fs=parseFloat(getComputedStyle(sp).fontSize), n=0;
+    sp.style.display='block'; sp.style.wordBreak='break-word'; sp.style.hyphens='auto';
+    while((sp.scrollHeight>box.clientHeight-2||sp.scrollWidth>box.clientWidth-2)&&fs>5&&n++<14){ fs-=.5; sp.style.fontSize=fs+'px'; }
   });
 }
-document.addEventListener('keydown', e => {
-  if (!document.getElementById('s-game').classList.contains('active')) return;
-  const k = e.key.toUpperCase();
-  if (k === 'BACKSPACE') backKey();
-  else if (T().re.test(k)) typeKey(k);
-});
 
-/* --- главный экран --- */
-function dailyIdx() { return Math.floor(Date.now() / 864e5) % PUZZLES.length; }
-function openDaily() { loadPuzzle(dailyIdx()); }
-function goHome() { clearInterval(timer); renderHome(); show('s-home'); }
-function show(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  $(id).classList.add('active');
+function wordDone(w){ return w.cells.every(([r,c])=>cur[r][c]); }
+function isComplete(){ return words.every(wordDone); }
+function selectWord(i,cell){
+  selWord=i;
+  document.querySelectorAll('#board .c.sel,#board .c.act').forEach(e=>e.classList.remove('sel','act'));
+  if(i<0) return;
+  const w=words[i];
+  w.cells.forEach(([r,c])=>cellEl(r,c).classList.add('sel'));
+  cellEl(...w.clue).classList.add('sel');
+  actCell = cell || w.cells.find(([r,c])=>!cur[r][c]) || w.cells[0];
+  cellEl(...actCell).classList.add('act');
+  refillTray(false);
 }
-function renderHome() {
-  const solved = LS.get('solved-' + LANG, []);
-  $('st-solved').textContent = solved.length;
-  const st = LS.get('streak', { n: 0 });
-  $('st-streak').textContent = st.n + ' 🔥';
-  const best = LS.get('best', null);
-  $('st-best').textContent = best ? fmt(best) : '–';
-  const d = new Date();
-  $('daily-date').textContent = d.toLocaleDateString(T().locale, { day: 'numeric', month: 'long' });
-  $('daily-state').textContent = solved.includes(dailyIdx()) ? T().done : T().ready;
-  const lv = $('levels'); lv.innerHTML = '';
-  PUZZLES.forEach((p, i) => {
-    const div = document.createElement('div');
-    div.className = 'lvl' + (solved.includes(i) ? ' done' : '');
-    div.innerHTML = `${i + 1}<small>5×5</small>`;
-    div.onclick = () => loadPuzzle(i);
-    lv.appendChild(div);
+function onCellTap(r,c){
+  SFX.tap();
+  const ws=words.filter(w=>w.cells.some(([a,b])=>a===r&&b===c));
+  if(!ws.length) return;
+  let pick=ws[0];
+  if(ws.length>1){
+    const inSel=ws.find(w=>w.i===selWord);
+    if(inSel && actCell && actCell[0]===r && actCell[1]===c) pick=ws.find(w=>w.i!==selWord);
+    else if(inSel) pick=inSel;
+    else pick=ws.find(w=>!wordDone(w))||ws[0];
+  }
+  selectWord(pick.i,[r,c]);
+}
+
+/* ---------- tray ---------- */
+function neededCells(){
+  const out=[];
+  const w=words[selWord];
+  const seen=new Set();
+  if(w) w.cells.forEach(([r,c])=>{ if(!cur[r][c]){ out.push([r,c]); seen.add(key(r,c)); } });
+  const rest=[];
+  for(let r=0;r<P.H;r++) for(let c=0;c<P.W;c++) if(sol[r][c]!=='#'&&!cur[r][c]&&!seen.has(key(r,c))) rest.push([r,c]);
+  rest.sort(()=>Math.random()-.5);
+  return out.concat(rest);
+}
+function refillTray(full){
+  const cap=6;
+  const need=neededCells();
+  // keep tiles whose letters are still needed somewhere
+  const counts={}; need.forEach(([r,c])=>{const ch=sol[r][c];counts[ch]=(counts[ch]||0)+1});
+  if(!full){ tray=tray.filter(ch=>{ if(counts[ch]>0){counts[ch]--;return true} return false; }); }
+  else tray=[];
+  // ensure the active cell letter is present
+  const want=[];
+  if(actCell && !cur[actCell[0]][actCell[1]]) want.push(sol[actCell[0]][actCell[1]]);
+  need.forEach(([r,c])=>want.push(sol[r][c]));
+  const have={}; tray.forEach(ch=>have[ch]=(have[ch]||0)+1);
+  const add=[];
+  for(const ch of want){
+    if(tray.length+add.length>=cap) break;
+    if(have[ch]>0){ have[ch]--; continue; }
+    add.push(ch);
+  }
+  // active letter must be in tray: if missing, replace last
+  const actCh = actCell && !cur[actCell[0]][actCell[1]] ? sol[actCell[0]][actCell[1]] : null;
+  let fresh = full? add : add;
+  tray = tray.concat(add);
+  if(actCh && !tray.includes(actCh)){ tray[tray.length-1]=actCh; }
+  if(full||add.length) tray = tray.map((ch,i)=>ch); // keep order, new at end
+  renderTray(full?tray.length:add.length);
+}
+function renderTray(nNew){
+  const el=$('#tray'); el.innerHTML='';
+  tray.forEach((ch,i)=>{
+    const d=document.createElement('div'); d.className='tile'+(i>=tray.length-nNew?' new':''); d.textContent=ch; d.dataset.i=i;
+    d.style.animationDelay=(i>=tray.length-nNew? (i-(tray.length-nNew))*.05:0)+'s';
+    attachDrag(d,i);
+    el.appendChild(d);
   });
 }
-applyT(); buildKb(); renderHome();
+function attachDrag(d,i){
+  let sx,sy,drag=null,moved=false,over=null;
+  d.addEventListener('pointerdown',e=>{
+    if(finished) return;
+    ac(); sx=e.clientX; sy=e.clientY; moved=false; d.setPointerCapture(e.pointerId); d.classList.add('lift'); SFX.pick();
+  });
+  d.addEventListener('pointermove',e=>{
+    if(sx==null) return;
+    if(!moved && Math.hypot(e.clientX-sx,e.clientY-sy)>8){
+      moved=true; drag=d.cloneNode(true); drag.classList.add('drag'); drag.classList.remove('new','lift');
+      document.body.appendChild(drag); d.classList.add('ph');
+    }
+    if(moved){
+      drag.style.left=(e.clientX-24)+'px'; drag.style.top=(e.clientY-60)+'px';
+      const el=document.elementFromPoint(e.clientX,e.clientY-34);
+      const cell=el&&el.closest&&el.closest('.c.w');
+      if(over&&over!==cell) over.classList.remove('drop');
+      over=cell; if(over&&!cur[+over.dataset.r][+over.dataset.c]) over.classList.add('drop');
+    }
+  });
+  const end=e=>{
+    if(sx==null) return; sx=null; d.classList.remove('lift');
+    if(moved){
+      if(drag) drag.remove(); d.classList.remove('ph');
+      if(over){ over.classList.remove('drop'); const r=+over.dataset.r,c=+over.dataset.c; if(!cur[r][c]) tryPlace(i,[r,c],null); }
+      over=null;
+    } else {
+      if(actCell) tryPlace(i,actCell,d);
+    }
+  };
+  d.addEventListener('pointerup',end); d.addEventListener('pointercancel',end);
+}
+function flyTile(fromEl,toEl,ch,cb){
+  if(!fromEl){cb();return}
+  const a=fromEl.getBoundingClientRect(), b=toEl.getBoundingClientRect();
+  const f=fromEl.cloneNode(true); f.className='tile flytile'; f.textContent=ch;
+  f.style.left=a.left+'px'; f.style.top=a.top+'px'; f.style.width=a.width+'px'; f.style.height=a.height+'px';
+  document.body.appendChild(f); fromEl.classList.add('gone');
+  requestAnimationFrame(()=>{ f.style.transform=`translate(${b.left-a.left+(b.width-a.width)/2}px,${b.top-a.top+(b.height-a.height)/2}px) scale(${b.width/a.width})`; f.style.opacity='.0'; });
+  setTimeout(()=>{f.remove();cb()},260);
+}
+function tryPlace(ti,cell,tileEl){
+  const [r,c]=cell, ch=tray[ti], el=cellEl(r,c);
+  if(cur[r][c]) return;
+  if(sol[r][c]===ch){
+    flyTile(tileEl,el,ch,()=>{
+      cur[r][c]=ch; combo++;
+      el.innerHTML=`<span class="ch pop">${ch}</span>`; el.classList.add('done');
+      SFX.place(); sparks(el,6,'#f2b632');
+      addScore(1,el,false);
+      tray.splice(ti,1);
+      afterPlace(r,c);
+    });
+  } else {
+    combo=0; mistakes++;
+    SFX.bad(); el.classList.remove('bad'); void el.offsetWidth; el.classList.add('bad');
+    if(tileEl){ tileEl.classList.remove('lift'); tileEl.animate([{transform:'translateX(-6px)'},{transform:'translateX(6px)'},{transform:'translateX(0)'}],{duration:240}); }
+    setTimeout(()=>el.classList.remove('bad'),400);
+  }
+}
+function afterPlace(r,c){
+  const done=words.filter(w=>w.cells.some(([a,b])=>a===r&&b===c)&&wordDone(w));
+  let delay=0;
+  done.forEach(w=>{ celebrateWord(w,delay); delay+=250; });
+  save();
+  if(isComplete()){ setTimeout(finish, 900+delay); return; }
+  // advance cursor
+  const w=words[selWord];
+  if(w && !wordDone(w)){
+    const idx=w.cells.findIndex(([a,b])=>a===r&&b===c);
+    const nxt=w.cells.slice(idx+1).find(([a,b])=>!cur[a][b])||w.cells.find(([a,b])=>!cur[a][b]);
+    selectWord(selWord,nxt);
+  } else {
+    const nxtW=nextWord();
+    if(done.length){ actCell=null; refillTray(false); setTimeout(()=>selectWord(nxtW),420); } else selectWord(nxtW);
+  }
+}
+function nextWord(){
+  const n=words.length;
+  // prefer words crossing the just-finished one, then any
+  for(let k=1;k<=n;k++){ const i=(selWord+k)%n; if(!wordDone(words[i])) return i; }
+  return -1;
+}
+function celebrateWord(w,delay){
+  setTimeout(()=>{
+    SFX.word(); combo=Math.min(combo+1,7);
+    w.cells.forEach(([r,c],k)=>{ const e=cellEl(r,c); setTimeout(()=>{e.classList.remove('wave');void e.offsetWidth;e.classList.add('wave')},k*55); });
+    const last=cellEl(...w.cells[w.cells.length-1]);
+    setTimeout(()=>{ addScore(w.word.length,last,true); sparks(last,14,'#7fe3c1'); },w.cells.length*55);
+    if(w.word.length>=5 || Math.random()<.35) react();
+  },delay);
+}
+function react(){
+  const d=document.createElement('div'); d.className='fx react';
+  const R=t('react'); const M=MASCOTS[Math.floor(Math.random()*MASCOTS.length)];
+  d.innerHTML=`<div class="m"><img src="img/mascot_${M[0]}.webp" alt="" style="width:96px;height:96px" onerror="this.outerHTML='${M[1]}'"></div><div class="t">${R[Math.floor(Math.random()*R.length)]}</div>`;
+  document.body.appendChild(d); setTimeout(()=>d.remove(),1450);
+}
+function sparks(el,n,color){
+  const b=el.getBoundingClientRect();
+  for(let i=0;i<n;i++){
+    const s=document.createElement('i'); s.className='spark';
+    const a=Math.random()*Math.PI*2, d=20+Math.random()*30;
+    s.style.left=(b.left+b.width/2)+'px'; s.style.top=(b.top+b.height/2)+'px'; s.style.background=i%2?color:'#fff';
+    s.style.setProperty('--dx',Math.cos(a)*d+'px'); s.style.setProperty('--dy',Math.sin(a)*d+'px');
+    document.body.appendChild(s); setTimeout(()=>s.remove(),720);
+  }
+}
+function addScore(n,el,big){
+  score+=n; updScores();
+  const b=el.getBoundingClientRect(), f=document.createElement('div');
+  f.className='fx plusN'; f.textContent='+'+n; f.style.left=(b.left+b.width/2)+'px'; f.style.top=(b.top-4)+'px';
+  if(big){ f.style.fontSize='26px'; f.style.color='#c8102e'; }
+  document.body.appendChild(f); setTimeout(()=>f.remove(),1000);
+}
+let shownMe=0, shownOp=0;
+function updScores(instant){
+  const me=$('#sc-me'), op=$('#sc-op');
+  if(instant){ shownMe=score; shownOp=oppScore; me.textContent=score; op.textContent=oppScore; return; }
+  if(shownMe!==score){ me.parentElement.classList.add('bump'); setTimeout(()=>me.parentElement.classList.remove('bump'),200); }
+  if(shownOp!==oppScore){ op.parentElement.classList.add('bump'); setTimeout(()=>op.parentElement.classList.remove('bump'),200); }
+  tween(me,shownMe,score); tween(op,shownOp,oppScore); shownMe=score; shownOp=oppScore;
+}
+function tween(el,a,b){ const t0=performance.now(); const f=now=>{const k=Math.min(1,(now-t0)/350); el.textContent=Math.round(a+(b-a)*k); if(k<1)requestAnimationFrame(f)}; requestAnimationFrame(f); }
 
+/* ---------- opponent ---------- */
+function startOpp(){
+  clearInterval(oppTimer);
+  const total=P.grid.join('').replace(/#/g,'').length + words.reduce((a,w)=>a+w.word.length,0);
+  const target=Math.round(total*(0.55+Math.min(P.index,20)*0.012));   // bot's final-ish score
+  const dur=(140+P.index*4)*1000;  // ms to reach target
+  const step=1800;
+  oppTimer=setInterval(()=>{
+    if(finished||document.hidden||!$('#game').classList.contains('on')) return;
+    if(oppScore>=target) return;
+    const inc = Math.random()<.18 ? 3+Math.floor(Math.random()*4) : (Math.random()<.7?1:0);
+    if(!inc) return;
+    oppScore=Math.min(target,oppScore+Math.max(1,Math.round(inc*target/(dur/step)/1.1)));
+    SFX.opp(); updScores(); save();
+  },step);
+}
+
+/* ---------- tools ---------- */
+function spend(n){ if(coins<n){ toast(t('nocoins')); SFX.bad(); return false } coins-=n; LS.set('coins',coins); updCoins(); SFX.coin(); return true; }
+function updCoins(){ document.querySelectorAll('.coinsN').forEach(e=>e.textContent=coins); }
+function toolShuffle(){ if(finished)return; SFX.shuffle(); tray=[]; refillTray(true); tray.sort(()=>Math.random()-.5); renderTray(tray.length); }
+function revealCell(r,c){
+  const el=cellEl(r,c); cur[r][c]=sol[r][c];
+  el.innerHTML=`<span class="ch pop">${sol[r][c]}</span>`; el.classList.add('done','hint'); sparks(el,8,'#2f6b4f');
+}
+function toolHint(){
+  if(finished||!actCell||cur[actCell[0]][actCell[1]]) return;
+  if(!spend(40)) return;
+  const [r,c]=actCell; revealCell(r,c); SFX.place();
+  const i=tray.indexOf(sol[r][c]); if(i>=0) tray.splice(i,1);
+  afterPlace(r,c);
+}
+function toolWord(){
+  if(finished||selWord<0) return; const w=words[selWord]; if(wordDone(w)) return;
+  if(!spend(100)) return;
+  let last=null;
+  w.cells.forEach(([r,c],k)=>{ if(!cur[r][c]){ revealCell(r,c); last=[r,c]; const i=tray.indexOf(sol[r][c]); if(i>=0)tray.splice(i,1);} });
+  SFX.place(); if(last) afterPlace(...last);
+}
+
+function save(){ if(!P) return; LS.set('state-'+lang+'-'+P.index,{cur,score,opp:oppScore}); }
+
+/* ---------- finish ---------- */
+function finish(){
+  if(finished) return; finished=true; clearInterval(oppTimer);
+  const pr=prog(); const won=score>=oppScore;
+  if(!pr.done.includes(P.index)) pr.done.push(P.index);
+  pr.scores=pr.scores||{}; pr.scores[P.index]=Math.max(pr.scores[P.index]||0,score);
+  if(won) pr.wins=(pr.wins||0)+1;
+  saveProg(pr); LS.set('state-'+lang+'-'+P.index,null);
+  const reward=won?60:25; coins+=reward; LS.set('coins',coins);
+  $('#w-title').textContent=won?t('win'):t('lose');
+  $('#w-me-l').textContent=t('you'); $('#w-op-l').textContent=t('opp');
+  $('#w-me').textContent=score; $('#w-op').textContent=oppScore;
+  $('#w-mep').classList.toggle('win',won); $('#w-opp').classList.toggle('win',!won);
+  $('#w-tag').textContent=t('winner'); $('#w-tag').style.display='block';
+  $('#w-mep').appendChild($('#w-tag')); if(!won) $('#w-opp').appendChild($('#w-tag'));
+  $('#w-reward').textContent='+'+reward;
+  const w3=(pr.wins||0)%3; $('#w-prog-l').textContent=`${t('wins')} ${w3===0&&won?3:w3} / 3 ${t('chest')}`;
+  $('#w-next').innerHTML=`${t('next')}<small>${t('level')} ${Math.min(P.index+2,DATA[lang].puzzles.length)}</small>`;
+  $('#w-home').textContent=t('home');
+  setTimeout(()=>{ show('win'); SFX.win(); confetti(); $('#w-bar').style.width='0'; setTimeout(()=>$('#w-bar').style.width=((w3===0&&won?3:w3)/3*100)+'%',50); },150);
+}
+function confetti(){
+  const cv=$('#cf'), x=cv.getContext('2d'); const W=cv.width=innerWidth*devicePixelRatio, H=cv.height=innerHeight*devicePixelRatio;
+  const cols=['#f2b632','#c8102e','#7fe3c1','#9fd0ff','#ffffff','#2f7fd9','#ff9fb2'];
+  const ps=Array.from({length:180},()=>({x:Math.random()*W,y:-Math.random()*H*.6,w:(6+Math.random()*8)*devicePixelRatio,h:(4+Math.random()*6)*devicePixelRatio,
+    vy:(2+Math.random()*4)*devicePixelRatio,vx:(Math.random()-.5)*2*devicePixelRatio,a:Math.random()*6,va:(Math.random()-.5)*.3,c:cols[Math.random()*cols.length|0]}));
+  const t0=performance.now();
+  (function f(now){
+    x.clearRect(0,0,W,H);
+    ps.forEach(p=>{p.x+=p.vx+Math.sin(now/300+p.a)*.6;p.y+=p.vy;p.a+=p.va; x.save();x.translate(p.x,p.y);x.rotate(p.a);x.fillStyle=p.c;x.fillRect(-p.w/2,-p.h/2,p.w,p.h*Math.abs(Math.cos(p.a)));x.restore();});
+    if(now-t0<5200 && $('#win').classList.contains('on')) requestAnimationFrame(f); else x.clearRect(0,0,W,H);
+  })(t0);
+}
+function toast(msg,ms){ const e=$('#toast'); e.textContent=msg; e.classList.add('on'); clearTimeout(e._t); e._t=setTimeout(()=>e.classList.remove('on'),ms||1600); }
+
+/* ---------- snow ---------- */
+function snow(host,n){ for(let i=0;i<n;i++){ const s=document.createElement('i'); s.className='flake'; s.textContent='❄'; s.style.left=Math.random()*100+'%';
+  s.style.fontSize=(6+Math.random()*10)+'px'; s.style.animationDuration=(8+Math.random()*10)+'s'; s.style.animationDelay=(-Math.random()*16)+'s'; s.style.opacity=.4+Math.random()*.5; host.appendChild(s);} }
+
+/* ---------- wiring ---------- */
+$('#g-back').onclick=()=>{ SFX.tap(); clearInterval(oppTimer); save(); renderHome(); };
+$('#t-shuffle').onclick=toolShuffle; $('#t-word').onclick=toolWord; $('#t-hint').onclick=toolHint;
+$('#w-next').onclick=()=>{ SFX.tap(); const n=Math.min(P.index+1,DATA[lang].puzzles.length-1); startLevel(n); };
+$('#w-home').onclick=()=>{ SFX.tap(); renderHome(); };
+$('#h-lang-ru').onclick=()=>{ lang='ru'; LS.set('lang',lang); SFX.tap(); renderHome(); };
+$('#h-lang-no').onclick=()=>{ lang='no'; LS.set('lang',lang); SFX.tap(); renderHome(); };
+$('#h-snd').onclick=()=>{ soundOn=!soundOn; LS.set('sound',soundOn); SFX.tap(); renderHome(); };
+document.querySelectorAll('.sky').forEach(s=>snow(s,14));
+window.NK={startLevel,renderHome,get state(){return {P,sol,cur,words,selWord,actCell,tray,score,oppScore,finished}},finish,tryPlace,toolHint,toolWord};
+renderHome();
+})();
 </script>
 </body>
 </html>
