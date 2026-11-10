@@ -208,7 +208,7 @@ button{font-family:inherit;border:0;cursor:pointer}
     <div class="stats"><div><b id="st-solved">0</b><span id="st-solved-l"></span></div><div><b id="st-wins">0</b><span id="st-wins-l"></span></div><div><b id="st-best">0</b><span id="st-best-l"></span></div></div>
     <div class="row"><button class="chip" id="h-lang-ru">🇷🇺 Русский</button><button class="chip" id="h-lang-no">🇳🇴 Norsk</button></div>
     <div class="row"><button class="chip" id="h-snd"></button></div>
-    <div id="nk-ver" style="text-align:center;margin-top:10px;font-size:11px;color:#7b8aa0;font-weight:700">v2.2 · test</div>
+    <div id="nk-ver" style="text-align:center;margin-top:10px;font-size:11px;color:#7b8aa0;font-weight:700">v2.3 · test</div>
   </div>
 </section>
 
@@ -452,47 +452,58 @@ function onCellTap(r,c){
 }
 
 /* ---------- tray ---------- */
-function neededCells(){
-  const out=[];
-  const w=words[selWord];
-  const seen=new Set();
-  if(w) w.cells.forEach(([r,c])=>{ if(!cur[r][c]){ out.push([r,c]); seen.add(key(r,c)); } });
-  const rest=[];
-  for(let r=0;r<P.H;r++) for(let c=0;c<P.W;c++) if(sol[r][c]!=='#'&&!cur[r][c]&&!seen.has(key(r,c))) rest.push([r,c]);
-  rest.sort(()=>Math.random()-.5);
-  return out.concat(rest);
+const ABC={ru:'оеаинтсрвлкмдпуяыьгзбчйхжшюцщэфъ',no:'ertnsilakodgmvfupbhjøyåæc'};
+const TRAY=6;
+function emptyCells(){ const out=[]; for(let r=0;r<P.H;r++) for(let c=0;c<P.W;c++) if(sol[r][c]!=='#'&&!cur[r][c]) out.push([r,c]); return out; }
+function wordNeed(){ const w=words[selWord]; return w? w.cells.filter(([r,c])=>!cur[r][c]).map(([r,c])=>sol[r][c]) : []; }
+// difficulty: how many tiles are "noise" (letters not needed in the selected word)
+function decoyShare(){ const i=P.index||0; return i<3?0.25:i<8?0.4:i<16?0.5:0.6; }
+function rnd(a){ return a[Math.floor(Math.random()*a.length)]; }
+function matchCount(need){ const left=need.slice(); let n=0; tray.forEach(ch=>{ if(ch==null) return; const k=left.indexOf(ch); if(k>=0){left.splice(k,1);n++;} }); return n; }
+function pickNoise(){
+  // half the time a letter some other empty cell needs, otherwise a common letter of the language
+  const em=emptyCells();
+  if(em.length && Math.random()<.5){ const [r,c]=rnd(em); return sol[r][c]; }
+  const ab=ABC[lang]||ABC.ru; return ab[Math.floor(Math.pow(Math.random(),1.6)*ab.length)];
 }
 function refillTray(full){
-  const cap=6;
-  const need=neededCells();
-  // keep tiles whose letters are still needed somewhere
-  const counts={}; need.forEach(([r,c])=>{const ch=sol[r][c];counts[ch]=(counts[ch]||0)+1});
-  if(!full){ tray=tray.filter(ch=>{ if(counts[ch]>0){counts[ch]--;return true} return false; }); }
-  else tray=[];
-  // ensure the active cell letter is present
-  const want=[];
-  if(actCell && !cur[actCell[0]][actCell[1]]) want.push(sol[actCell[0]][actCell[1]]);
-  need.forEach(([r,c])=>want.push(sol[r][c]));
-  const have={}; tray.forEach(ch=>have[ch]=(have[ch]||0)+1);
-  const add=[];
-  for(const ch of want){
-    if(tray.length+add.length>=cap) break;
-    if(have[ch]>0){ have[ch]--; continue; }
-    add.push(ch);
+  if(!P) return;
+  if(full||tray.length!==TRAY) tray=new Array(TRAY).fill(null);
+  const fresh=[];
+  const need=wordNeed();
+  // the selected word must have enough of its letters in the tray (but NOT in word order and not always the active one)
+  const want=Math.min(need.length, Math.max(1, Math.round(TRAY*(1-decoyShare()))));
+  const left=need.slice(); tray.forEach(ch=>{ const k=left.indexOf(ch); if(k>=0) left.splice(k,1); });
+  left.sort(()=>Math.random()-.5);
+  let have=matchCount(need);
+  const empties=()=>tray.map((ch,i)=>ch==null?i:-1).filter(i=>i>=0).sort(()=>Math.random()-.5);
+  // fill empty slots first
+  for(const i of empties()){
+    if(have<want && left.length){ tray[i]=left.pop(); have++; }
+    else tray[i]=pickNoise();
+    fresh.push(i);
   }
-  // active letter must be in tray: if missing, replace last
-  const actCh = actCell && !cur[actCell[0]][actCell[1]] ? sol[actCell[0]][actCell[1]] : null;
-  let fresh = full? add : add;
-  tray = tray.concat(add);
-  if(actCh && !tray.includes(actCh)){ tray[tray.length-1]=actCh; }
-  if(full||add.length) tray = tray.map((ch,i)=>ch); // keep order, new at end
-  renderTray(full?tray.length:add.length);
+  // still not enough letters of this word? swap random noise tiles for them
+  if(have<want && left.length){
+    const noise=[]; const l2=need.slice();
+    tray.forEach((ch,i)=>{ const k=l2.indexOf(ch); if(k>=0) l2.splice(k,1); else noise.push(i); });
+    noise.sort(()=>Math.random()-.5);
+    while(have<want && left.length && noise.length){ const i=noise.pop(); tray[i]=left.pop(); have++; fresh.push(i); }
+  }
+  // the game must never get stuck: at least one tile fits some empty cell of the selected word
+  if(need.length && matchCount(need)===0){ const i=Math.floor(Math.random()*TRAY); tray[i]=rnd(need); fresh.push(i); }
+  renderTray(fresh);
 }
-function renderTray(nNew){
+function renderTray(fresh){
+  fresh=fresh||[];
   const el=$('#tray'); el.innerHTML='';
+  let k=0;
   tray.forEach((ch,i)=>{
-    const d=document.createElement('div'); d.className='tile'+(i>=tray.length-nNew?' new':''); d.textContent=ch; d.dataset.i=i;
-    d.style.animationDelay=(i>=tray.length-nNew? (i-(tray.length-nNew))*.05:0)+'s';
+    const d=document.createElement('div');
+    if(ch==null){ d.className='tile ph'; el.appendChild(d); return; }
+    const isNew=fresh.includes(i);
+    d.className='tile'+(isNew?' new':''); d.textContent=ch; d.dataset.i=i;
+    if(isNew) d.style.animationDelay=(k++*.05)+'s';
     attachDrag(d,i);
     el.appendChild(d);
   });
@@ -547,7 +558,7 @@ function tryPlace(ti,cell,tileEl){
       el.innerHTML=`<span class="ch pop">${ch}</span>`; el.classList.add('done');
       SFX.place(); sparks(el,6,'#f2b632');
       addScore(1,el,false);
-      tray.splice(ti,1);
+      tray[ti]=null;
       afterPlace(r,c);
     });
   } else {
@@ -642,7 +653,7 @@ function startOpp(){
 /* ---------- tools ---------- */
 function spend(n){ if(coins<n){ toast(t('nocoins')); SFX.bad(); return false } coins-=n; LS.set('coins',coins); updCoins(); SFX.coin(); return true; }
 function updCoins(){ document.querySelectorAll('.coinsN').forEach(e=>e.textContent=coins); }
-function toolShuffle(){ if(finished)return; SFX.shuffle(); tray=[]; refillTray(true); tray.sort(()=>Math.random()-.5); renderTray(tray.length); }
+function toolShuffle(){ if(finished)return; SFX.shuffle(); refillTray(true); }
 function revealCell(r,c){
   const el=cellEl(r,c); cur[r][c]=sol[r][c];
   el.innerHTML=`<span class="ch pop">${sol[r][c]}</span>`; el.classList.add('done','hint'); sparks(el,8,'#2f6b4f');
@@ -651,14 +662,14 @@ function toolHint(){
   if(finished||!actCell||cur[actCell[0]][actCell[1]]) return;
   if(!spend(40)) return;
   const [r,c]=actCell; revealCell(r,c); SFX.place();
-  const i=tray.indexOf(sol[r][c]); if(i>=0) tray.splice(i,1);
+  const i=tray.indexOf(sol[r][c]); if(i>=0) tray[i]=null;
   afterPlace(r,c);
 }
 function toolWord(){
   if(finished||selWord<0) return; const w=words[selWord]; if(wordDone(w)) return;
   if(!spend(100)) return;
   let last=null;
-  w.cells.forEach(([r,c],k)=>{ if(!cur[r][c]){ revealCell(r,c); last=[r,c]; const i=tray.indexOf(sol[r][c]); if(i>=0)tray.splice(i,1);} });
+  w.cells.forEach(([r,c],k)=>{ if(!cur[r][c]){ revealCell(r,c); last=[r,c]; const i=tray.indexOf(sol[r][c]); if(i>=0)tray[i]=null;} });
   SFX.place(); if(last) afterPlace(...last);
 }
 
